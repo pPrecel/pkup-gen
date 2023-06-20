@@ -12,7 +12,7 @@ func NewVersionCommand(opts *Options) *cli.Command {
 		Aliases: []string{"v"},
 		Usage:   "Shows tool version",
 		Action: func(_ *cli.Context) error {
-			fmt.Println(opts.Version)
+			fmt.Printf("pkup-gen version: %s\n", opts.Version)
 			return nil
 		},
 	}
