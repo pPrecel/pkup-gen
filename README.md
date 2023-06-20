@@ -19,7 +19,7 @@
 
 Simple and easy-to-use tool to generate PKUP (`Podwyższone Koszty Uzyskania Przychodu` - Polish law thing) artifacts, `.patch` files, based on merged Github PullRequests.
 
-The `pkup-gen` collect all users PullRequests merged between the 19th (23:59:59) of the actual month and the 19th (23:59:59) of the past one. To qualify PR, the user should be an author or committer of at least one commit from the PullRequest.
+The `pkup-gen` collect all users PullRequests merged between the 18th (23:59:59) of the actual month and the 19th (00:00:00) of the past one. To qualify PR, the user should be an author or committer of at least one commit from the PullRequest.
 
 ## Installation
 
