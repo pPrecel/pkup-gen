@@ -1,0 +1,51 @@
+env:
+  - GO111MODULE=on
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    binary: pkup
+    main: ./main.go
+    ldflags:
+      - -s -w -X main.version=v{{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.builtBy=goreleaser
+    goos:
+      - linux
+      - darwin
+    goarch:
+      - "386"
+      - amd64
+      - arm
+      - arm64
+    goarm:
+    - "7"
+
+archives:
+  - files:
+      - README.md
+      - LICENSE
+
+brews:
+  - homepage: "http://github.com/pPrecel/pkup-gen"
+    description: "Simple tool to generate PKUP artifacts."
+    tap:
+      owner: pPrecel
+      name: homebrew-tap
+    goarm: "7"
+    commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
+    folder: Formula
+    license: "MIT"
+    test: |
+      system "#{bin}/pkup"
+    install: |
+      bin.install "pkup"
+
+checksum:
+  name_template: 'checksums.txt'
+snapshot:
+  name_template: "{{ incpatch .Version }}"
+changelog:
+  sort: asc

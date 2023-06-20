@@ -1,0 +1,29 @@
+name: release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - 
+        name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - 
+        name: Set up Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.20
+      - 
+        name: GoReleaser
+        uses: goreleaser/goreleaser-action@v2.7.0
+        with:
+          args: release --rm-dist
+        env:
+          GITHUB_REF_NAME: ${{ env.GIT_REF }}
+          GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
