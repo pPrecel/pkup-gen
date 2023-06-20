@@ -14,11 +14,12 @@
 
 [![license](https://img.shields.io/badge/License-MIT-brightgreen.svg?style=for-the-badge)](https://github.com/pPrecel/pkup-gen/blob/main/LICENSE)
 [![build](https://img.shields.io/github/actions/workflow/status/pPrecel/pkup-gen/tests-build.yml?style=for-the-badge)](https://github.com/pPrecel/pkup-gen/actions/workflows/build.yml)
-
+gs
 ---
 
+Simple and easy-to-use tool to generate PKUP (`Podwyższone Koszty Uzyskania Przychodu` - Polish law thing) artifacts, `.patch` files, based on merged Github PullRequests.
 
-Simple and easy to use tool to generate PKUP artifacts (`.patch` files) based on merged Github PullRequests.
+The `pkup-gen` collect all users PullRequests merged between the 19th (23:59:59) of the actual month and the 19th (23:59:59) of the past one. To qualify PR, the user should be an author or committer of at least one commit from the PullRequest.
 
 ## Installation
 
