@@ -18,7 +18,7 @@ Simple and easy to use tool to generate PKUP artifacts (`.patch` files) based on
 
 Example usage:
 
-```bash
+```text
 pkup gen --token "<PAT_TOKEN>" --username "pPrecel" \
                       --repo "kyma-project/serverless-manager" \
                       --repo "kyma-project/keda-manager" \
