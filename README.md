@@ -14,6 +14,23 @@ Simple and easy to use tool to generate PKUP artifacts (`.patch` files) based on
 
 ## Installation
 
+Visit the [releases page](https://github.com/pPrecel/pkup-gen/releases) to download one of the pre-built binaries for your platform.
+
+### Homebrew
+
+1. Use Homebrew to install `pkup-gen`:
+
+    ```bash
+    brew install pPrecel/tap/pkup-gen
+    ```
+
+    or
+
+    ```bash
+    brew tap pPrecel/tap
+    brew install pkup-gen
+    ```
+
 ## Usage
 
 Example usage:
