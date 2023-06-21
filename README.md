@@ -76,9 +76,9 @@ INFO[0024]      user 'pPrecel' is an author of 'Regenerate config'
 INFO[0024]      user 'pPrecel' is an author of 'Cover case when Keda CR is duplicated '
 INFO[0025] patch saved to file '/Users/pprecel/go/src/github.com/pPrecel/PKUP/kyma-project_keda-manager.patch'
 INFO[0025] processing 'kyma-project/kyma' repo
-INFO[0068] skipping 'kyma-project/kyma' no user activity detected
+WARN[0068] skipping 'kyma-project/kyma' no user activity detected
 INFO[0068] processing 'kyma-incubator/reconciler' repo
-INFO[0087] skipping 'kyma-incubator/reconciler' no user activity detected
+WARN[0087] skipping 'kyma-incubator/reconciler' no user activity detected
 ```
 
 output:
