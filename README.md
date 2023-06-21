@@ -19,7 +19,7 @@
 
 Simple and easy-to-use tool to generate PKUP (`Podwyższone Koszty Uzyskania Przychodu` - Polish law thing) artifacts, `.patch` files, based on merged Github PullRequests.
 
-The `pkup-gen` collect all users PullRequests merged between the 18th (23:59:59) of the actual month and the 19th (00:00:00) of the past one. To qualify PR, the user should be an author or committer of at least one commit from the PullRequest.
+The `pkup-gen` collects all users' PullRequests merged between the 18th (23:59:59) of the actual month and the 19th (00:00:00) of the past one. To qualify PR, the user should be an author or committer of at least one commit from the PullRequest.
 
 ## Installation
 
@@ -27,7 +27,7 @@ Visit the [releases page](https://github.com/pPrecel/pkup-gen/releases) to downl
 
 ### Homebrew
 
-1. Use Homebrew to install `pkup-gen`:
+1. Install the `pkup-gen` using the Homebrew:
 
     ```bash
     brew install pPrecel/tap/pkup-gen
@@ -90,3 +90,7 @@ ls --tree
 ├── kyma-project_keda-manager.patch
 └── kyma-project_serverless-manager.patch
 ```
+
+## Personal Access Token
+
+The `pkup-gen` is using GitHub API for all HTTP operations. It does mean that to generate artifacts you have to pass PAT using the `--token` flag. For open-source projects, the generated token does not need to have any permissions.

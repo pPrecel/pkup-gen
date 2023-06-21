@@ -171,7 +171,7 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 			}
 
 			if diff == "" {
-				opts.Log.Infof("skipping '%s/%s' no user activity detected", org, repo)
+				opts.Log.Warnf("skipping '%s/%s' no user activity detected", org, repo)
 				continue
 			}
 
