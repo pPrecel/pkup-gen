@@ -93,4 +93,4 @@ ls --tree
 
 ## Personal Access Token
 
-The `pkup-gen` is using GitHub API for all HTTP operations. It does mean that to generate artifacts you have to pass PAT using the `--token` flag. For open-source projects, the generated token does not need to have any permissions.
+The `pkup-gen` is using GitHub API for all HTTP operations. It does mean that to generate artifacts you have to pass a [PAT](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) using the `--token` flag. For open-source projects, the generated token does not need to have any permissions.
