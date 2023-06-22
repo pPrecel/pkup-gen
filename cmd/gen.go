@@ -104,6 +104,19 @@ func NewGenCommand(opts *Options) *cli.Command {
 					return nil
 				},
 			},
+			&cli.StringFlag{
+				Name:        "enterprise-url",
+				Usage:       "enterprise URL for calling other instances than github.com",
+				Aliases:     []string{"e", "enterprise"},
+				Destination: &actionsOpts.enterpriseURL,
+				Action: func(ctx *cli.Context, url string) error {
+					if url == "" {
+						return fmt.Errorf("'%s' enterprise url is empty", url)
+					}
+
+					return nil
+				},
+			},
 			&cli.BoolFlag{
 				Name:               "verbose",
 				Aliases:            []string{"v"},
@@ -130,9 +143,12 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 		opts.dir = pwd
 	}
 
-	client := github.NewClient(
-		ctx.Context, opts.Log, opts.token,
+	client, err := github.NewClient(
+		ctx.Context, opts.Log, opts.token, opts.enterpriseURL,
 	)
+	if err != nil {
+		return fmt.Errorf("create Github client error: %s", err.Error())
+	}
 
 	mergedAfter, mergedBefore := period.GetLastPKUP(opts.perdiod)
 	opts.Log.Infof("looking for changes beteen %s and %s",

@@ -11,9 +11,10 @@ type Options struct {
 
 type genActionOpts struct {
 	*Options
-	perdiod  int
-	dir      string
-	repos    map[string][]string
-	username string
-	token    string
+	perdiod       int
+	dir           string
+	repos         map[string][]string
+	username      string
+	token         string
+	enterpriseURL string
 }

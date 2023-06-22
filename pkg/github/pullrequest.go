@@ -12,8 +12,8 @@ const (
 	perPage = 100
 
 	// there is no sense to list more than perPage * maxPage pages
-	// for example kyma has closed more than 12k PRs
-	maxPage = 4
+	// for example kyma has more than 12k closed PRs
+	maxPage = 15
 )
 
 type Options struct {
@@ -112,6 +112,12 @@ func filterPRsByMergedAt(log *logrus.Logger, prs []*github.PullRequest, opts Opt
 func isAuthorOrCommitter(log *logrus.Logger, commits []*github.RepositoryCommit, userName string) bool {
 	for i := range commits {
 		commit := commits[i]
+
+		log.Debugf("\t\t'%s' is author and '%s' is committer of '%s'",
+			commit.Author.GetLogin(),
+			commit.Committer.GetLogin(),
+			commit.Commit.GetMessage(),
+		)
 
 		if commit != nil &&
 			((commit.Author != nil &&

@@ -13,10 +13,25 @@ type gh_client struct {
 	client *github.Client
 }
 
-func NewClient(ctx context.Context, logger *logrus.Logger, token string) *gh_client {
+func NewClient(ctx context.Context, logger *logrus.Logger, token, enterpriseURL string) (*gh_client, error) {
+	client := github.NewTokenClient(ctx, token)
+	if enterpriseURL != "" {
+		enterpriseClient, err := github.NewEnterpriseClient(
+			enterpriseURL,
+			"",
+			client.Client(),
+		)
+
+		if err != nil {
+			return nil, err
+		}
+
+		client = enterpriseClient
+	}
+
 	return &gh_client{
 		ctx:    ctx,
 		log:    logger,
-		client: github.NewTokenClient(ctx, token),
-	}
+		client: client,
+	}, nil
 }
