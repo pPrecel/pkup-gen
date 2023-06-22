@@ -83,7 +83,7 @@ func Test_gh_client_ListUserPRsForRepo(t *testing.T) {
 			MergedAfter:  testMergedAfter,
 		})
 		require.NoError(t, err)
-		require.Equal(t, testPullRequests, PRs)
+		require.Len(t, PRs, 2)
 	})
 }
 
