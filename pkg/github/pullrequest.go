@@ -21,6 +21,7 @@ type Options struct {
 	Org          string
 	Repo         string
 	Username     string
+	WithClosed   bool
 	MergedBefore time.Time
 	MergedAfter  time.Time
 }
@@ -70,6 +71,9 @@ func (gh *gh_client) listUserPRsForRepo(opts Options, page int) ([]*github.PullR
 	})
 
 	filtered := filterPRsByMergedAt(gh.log, pagePRs, opts)
+	if opts.WithClosed {
+		filtered = append(filtered, filterPRsByClosedAt(gh.log, pagePRs, opts)...)
+	}
 	pullRequests, err := gh.listUserPRs(filtered, opts)
 
 	gh.log.Trace(fmt.Sprintf("\t%d PRs are related with user %s", len(pullRequests), opts.Username), gh.log.Args(
@@ -114,6 +118,24 @@ func (gh *gh_client) listUserPRs(prs []*github.PullRequest, opts Options) ([]*gi
 	return userPRs, nil
 }
 
+func filterPRsByClosedAt(log *pterm.Logger, prs []*github.PullRequest, opts Options) []*github.PullRequest {
+	filtered := []*github.PullRequest{}
+	for i := range prs {
+		pr := *prs[i]
+
+		if pr.GetMergedAt().IsZero() && pr.GetClosedAt().Before(opts.MergedBefore) && pr.GetClosedAt().After(opts.MergedAfter) {
+			filtered = append(filtered, &pr)
+		}
+
+	}
+
+	log.Debug(fmt.Sprintf("\t%d PRs closed in the period on this page", len(filtered)), log.Args(
+		"org", opts.Org,
+		"repo", opts.Repo,
+	))
+	return filtered
+}
+
 func filterPRsByMergedAt(log *pterm.Logger, prs []*github.PullRequest, opts Options) []*github.PullRequest {
 	filtered := []*github.PullRequest{}
 	for i := range prs {
@@ -125,7 +147,7 @@ func filterPRsByMergedAt(log *pterm.Logger, prs []*github.PullRequest, opts Opti
 
 	}
 
-	log.Debug(fmt.Sprintf("\t%d PRs in the period on this page", len(filtered)), log.Args(
+	log.Debug(fmt.Sprintf("\t%d PRs merged in the period on this page", len(filtered)), log.Args(
 		"org", opts.Org,
 		"repo", opts.Repo,
 	))

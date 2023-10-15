@@ -17,4 +17,5 @@ type genActionOpts struct {
 	username      string
 	token         string
 	enterpriseURL string
+	withClosed    bool
 }

@@ -119,6 +119,12 @@ func NewGenCommand(opts *Options) *cli.Command {
 				},
 			},
 			&cli.BoolFlag{
+				Name:        "with-closed",
+				Usage:       "count closed (not merged) PullRequests",
+				Aliases:     []string{"c", "closed"},
+				Destination: &actionsOpts.withClosed,
+			},
+			&cli.BoolFlag{
 				Name:               "v",
 				Usage:              "verbose log mode",
 				DisableDefaultText: true,
@@ -184,6 +190,7 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 					repo:         repo,
 					username:     opts.username,
 					dir:          opts.dir,
+					withClosed:   opts.withClosed,
 					mergedAfter:  mergedAfter,
 					mergedBefore: mergedBefore,
 				})
@@ -208,6 +215,7 @@ type listToFileOpts struct {
 	repo         string
 	username     string
 	dir          string
+	withClosed   bool
 	mergedAfter  time.Time
 	mergedBefore time.Time
 }
@@ -217,6 +225,7 @@ func listUserPRsToFile(client github.Client, opts *listToFileOpts) ([]string, er
 		Org:          opts.org,
 		Repo:         opts.repo,
 		Username:     opts.username,
+		WithClosed:   opts.withClosed,
 		MergedAfter:  opts.mergedAfter,
 		MergedBefore: opts.mergedBefore,
 	})
@@ -237,17 +246,30 @@ func listUserPRsToFile(client github.Client, opts *listToFileOpts) ([]string, er
 		}
 	}
 
-	return prsToStringList(prs), nil
+	return prsToStringList(prs, opts.withClosed), nil
 }
 
-func prsToStringList(prs []*gh.PullRequest) []string {
+func prsToStringList(prs []*gh.PullRequest, signState bool) []string {
 	list := []string{}
 	for i := range prs {
 		pr := *prs[i]
-		list = append(list, *pr.Title)
+
+		title := *pr.Title
+		if signState {
+			title = fmt.Sprintf("%s %s", getStatePrefix(pr), pr.GetTitle())
+		}
+		list = append(list, title)
 	}
 
 	return list
+}
+
+func getStatePrefix(pr gh.PullRequest) string {
+	if !pr.GetMergedAt().IsZero() {
+		return "[MERGED]"
+	}
+
+	return "[CLOSED]"
 }
 
 func parseReposMap(log *pterm.Logger, args []string) (map[string][]string, error) {
