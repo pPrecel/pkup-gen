@@ -199,7 +199,7 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 
 	multiView.Run()
 
-	log.Info("all patch files saved to dir", log.Args("dir", opts.dir))
+	opts.Log.Info("all patch files saved to dir", log.Args("dir", opts.dir))
 	return nil
 }
 
