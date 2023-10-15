@@ -7,6 +7,7 @@ import (
 	"github.com/pterm/pterm"
 )
 
+//go:generate mockery --name=Client --output=automock --outpkg=automock --case=underscore
 type Client interface {
 	GetFileDiffForPRs([]*github.PullRequest, string, string) (string, error)
 	ListUserPRsForRepo(Options) ([]*github.PullRequest, error)

@@ -1,6 +1,9 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
+
 	"github.com/pterm/pterm"
 )
 
@@ -18,4 +21,16 @@ type genActionOpts struct {
 	token         string
 	enterpriseURL string
 	withClosed    bool
+}
+
+func (opts *genActionOpts) setDefaults() error {
+	if opts.dir == "" {
+		pwd, err := os.Getwd()
+		if err != nil {
+			return fmt.Errorf("get pwd error: %s", err.Error())
+		}
+		opts.dir = pwd
+	}
+
+	return nil
 }

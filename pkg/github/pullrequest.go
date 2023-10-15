@@ -30,8 +30,13 @@ func (gh *gh_client) ListUserPRsForRepo(opts Options) ([]*github.PullRequest, er
 	userPullRequests := []*github.PullRequest{}
 	page := 1
 
+	filters := []filterFunc{filterPRsByMergedAt}
+	if opts.WithClosed {
+		filters = append(filters, filterPRsByClosedAt)
+	}
+
 	for page <= maxPage {
-		prs, wasLast, err := gh.listUserPRsForRepo(opts, page)
+		prs, wasLast, err := gh.listUserPRsForRepo(opts, page, filters)
 		if err != nil {
 			return nil, err
 		}
@@ -47,7 +52,9 @@ func (gh *gh_client) ListUserPRsForRepo(opts Options) ([]*github.PullRequest, er
 	return userPullRequests, nil
 }
 
-func (gh *gh_client) listUserPRsForRepo(opts Options, page int) ([]*github.PullRequest, bool, error) {
+type filterFunc func(*pterm.Logger, []*github.PullRequest, Options) []*github.PullRequest
+
+func (gh *gh_client) listUserPRsForRepo(opts Options, page int, filters []filterFunc) ([]*github.PullRequest, bool, error) {
 	pagePRs, _, err := gh.client.PullRequests.List(gh.ctx, opts.Org, opts.Repo, &github.PullRequestListOptions{
 		State: "closed",
 		ListOptions: github.ListOptions{
@@ -70,13 +77,14 @@ func (gh *gh_client) listUserPRsForRepo(opts Options, page int) ([]*github.PullR
 		)
 	})
 
-	filtered := filterPRsByMergedAt(gh.log, pagePRs, opts)
-	if opts.WithClosed {
-		filtered = append(filtered, filterPRsByClosedAt(gh.log, pagePRs, opts)...)
+	filtered := []*github.PullRequest{}
+	for i := range filters {
+		filtered = append(filtered, filters[i](gh.log, pagePRs, opts)...)
 	}
+
 	pullRequests, err := gh.listUserPRs(filtered, opts)
 
-	gh.log.Trace(fmt.Sprintf("\t%d PRs are related with user %s", len(pullRequests), opts.Username), gh.log.Args(
+	gh.log.Trace(fmt.Sprintf("%d PRs are related with user %s", len(pullRequests), opts.Username), gh.log.Args(
 		"org", opts.Org,
 		"repo", opts.Repo,
 	))
@@ -116,42 +124,6 @@ func (gh *gh_client) listUserPRs(prs []*github.PullRequest, opts Options) ([]*gi
 	}
 
 	return userPRs, nil
-}
-
-func filterPRsByClosedAt(log *pterm.Logger, prs []*github.PullRequest, opts Options) []*github.PullRequest {
-	filtered := []*github.PullRequest{}
-	for i := range prs {
-		pr := *prs[i]
-
-		if pr.GetMergedAt().IsZero() && pr.GetClosedAt().Before(opts.MergedBefore) && pr.GetClosedAt().After(opts.MergedAfter) {
-			filtered = append(filtered, &pr)
-		}
-
-	}
-
-	log.Debug(fmt.Sprintf("\t%d PRs closed in the period on this page", len(filtered)), log.Args(
-		"org", opts.Org,
-		"repo", opts.Repo,
-	))
-	return filtered
-}
-
-func filterPRsByMergedAt(log *pterm.Logger, prs []*github.PullRequest, opts Options) []*github.PullRequest {
-	filtered := []*github.PullRequest{}
-	for i := range prs {
-		pr := *prs[i]
-
-		if pr.GetMergedAt().Before(opts.MergedBefore) && pr.GetMergedAt().After(opts.MergedAfter) {
-			filtered = append(filtered, &pr)
-		}
-
-	}
-
-	log.Debug(fmt.Sprintf("\t%d PRs merged in the period on this page", len(filtered)), log.Args(
-		"org", opts.Org,
-		"repo", opts.Repo,
-	))
-	return filtered
 }
 
 func isAuthorOrCommitter(log *pterm.Logger, commits []*github.RepositoryCommit, userName string) bool {
