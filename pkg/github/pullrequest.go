@@ -18,8 +18,11 @@ const (
 )
 
 type Options struct {
-	Org, Repo, Username       string
-	MergedBefore, MergedAfter time.Time
+	Org          string
+	Repo         string
+	Username     string
+	MergedBefore time.Time
+	MergedAfter  time.Time
 }
 
 func (gh *gh_client) ListUserPRsForRepo(opts Options) ([]*github.PullRequest, error) {
@@ -55,7 +58,10 @@ func (gh *gh_client) listUserPRsForRepo(opts Options, page int) ([]*github.PullR
 		return nil, true, err
 	}
 
-	gh.log.Debug(fmt.Sprintf("listed %d PRs on the page", len(pagePRs)))
+	gh.log.Trace(fmt.Sprintf("listed %d PRs on the page", len(pagePRs)), gh.log.Args(
+		"org", opts.Org,
+		"repo", opts.Repo,
+	))
 
 	sort.Slice(pagePRs, func(i, j int) bool {
 		return pagePRs[i].GetMergedAt().After(
@@ -66,7 +72,10 @@ func (gh *gh_client) listUserPRsForRepo(opts Options, page int) ([]*github.PullR
 	filtered := filterPRsByMergedAt(gh.log, pagePRs, opts)
 	pullRequests, err := gh.listUserPRs(filtered, opts)
 
-	gh.log.Debug(fmt.Sprintf("\t%d PRs are related with user %s", len(pullRequests), opts.Username))
+	gh.log.Trace(fmt.Sprintf("\t%d PRs are related with user %s", len(pullRequests), opts.Username), gh.log.Args(
+		"org", opts.Org,
+		"repo", opts.Repo,
+	))
 	return pullRequests,
 		len(pagePRs) < perPage,
 		err
@@ -85,6 +94,8 @@ func (gh *gh_client) listUserPRs(prs []*github.PullRequest, opts Options) ([]*gi
 
 		if !isAuthorOrCommitter(gh.log, commits, opts.Username) {
 			gh.log.Trace("user is NOT one of the authors of the pr", gh.log.Args(
+				"org", opts.Org,
+				"repo", opts.Repo,
 				"username", opts.Username,
 				"pr", pr.GetTitle(),
 			))
@@ -92,6 +103,8 @@ func (gh *gh_client) listUserPRs(prs []*github.PullRequest, opts Options) ([]*gi
 		}
 
 		gh.log.Trace("user is one of the authors of the pr", gh.log.Args(
+			"org", opts.Org,
+			"repo", opts.Repo,
 			"username", opts.Username,
 			"pr", pr.GetTitle(),
 		))
@@ -112,7 +125,10 @@ func filterPRsByMergedAt(log *pterm.Logger, prs []*github.PullRequest, opts Opti
 
 	}
 
-	log.Debug(fmt.Sprintf("\t%d PRs in the period on this page", len(filtered)))
+	log.Debug(fmt.Sprintf("\t%d PRs in the period on this page", len(filtered)), log.Args(
+		"org", opts.Org,
+		"repo", opts.Repo,
+	))
 	return filtered
 }
 
