@@ -1,0 +1,22 @@
+output: /dir
+artifacts:
+- ghUsername: pPrecel
+  ghPersonalAccessToken: <TOKEN>
+  repos:
+  - kyma-project/kyma
+  - kyma-project/serverless-manager
+  - kyma-project/keda-manager
+  - kyma-project/test-infra
+  - kyma-incubator/reconciler
+- ghUsername: my-enterprise-username
+  ghPersonalAccessToken: <ENTERPRISE-TOKEN>
+  ghEnterpriseURL: https://your.org.enterprise.com/
+  repos:
+  - ...
+raport:
+  template: /path/to/template.docx
+  gptToken: <TOKEN>
+  employeeName: Filip Strózik
+  jobTitle: Developer
+  department: ...
+  managerName: ...
