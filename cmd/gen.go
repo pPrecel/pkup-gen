@@ -39,7 +39,7 @@ func NewGenCommand(opts *Options) *cli.Command {
 				Name:    "repo",
 				Usage:   "<org>/<repo> slice",
 				Aliases: []string{"r"},
-				Action: func(ctx *cli.Context, args []string) error {
+				Action: func(_ *cli.Context, args []string) error {
 					repos, err := parseReposMap(opts.Log, args)
 					actionsOpts.repos = repos
 					return err
@@ -51,7 +51,7 @@ func NewGenCommand(opts *Options) *cli.Command {
 				Aliases:     []string{"u", "user"},
 				Required:    true,
 				Destination: &actionsOpts.username,
-				Action: func(ctx *cli.Context, username string) error {
+				Action: func(_ *cli.Context, username string) error {
 					if username == "" {
 						return fmt.Errorf("username '%s' is empty", username)
 					}
@@ -65,9 +65,9 @@ func NewGenCommand(opts *Options) *cli.Command {
 				Usage:       "personal access token",
 				Required:    true,
 				Destination: &actionsOpts.token,
-				Action: func(ctx *cli.Context, token string) error {
+				Action: func(_ *cli.Context, token string) error {
 					if token == "" {
-						return errors.New("The 'token' flag can't be empty")
+						return errors.New("'token' flag can't be empty")
 					}
 
 					return nil
@@ -97,7 +97,7 @@ func NewGenCommand(opts *Options) *cli.Command {
 				Usage:       "pkup period to render from 0 to -n",
 				Aliases:     []string{"p"},
 				Destination: &actionsOpts.perdiod,
-				Action: func(ctx *cli.Context, period int) error {
+				Action: func(_ *cli.Context, period int) error {
 					if period > 0 {
 						return fmt.Errorf("'%d' is not in range from 0 to -n", period)
 					}
@@ -110,7 +110,7 @@ func NewGenCommand(opts *Options) *cli.Command {
 				Usage:       "enterprise URL for calling other instances than github.com",
 				Aliases:     []string{"e", "enterprise"},
 				Destination: &actionsOpts.enterpriseURL,
-				Action: func(ctx *cli.Context, url string) error {
+				Action: func(_ *cli.Context, url string) error {
 					if url == "" {
 						return fmt.Errorf("'%s' enterprise url is empty", url)
 					}
