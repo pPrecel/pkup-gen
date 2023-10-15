@@ -9,6 +9,7 @@ import (
 
 	gh "github.com/google/go-github/v53/github"
 	"github.com/pPrecel/PKUP/internal/file"
+	"github.com/pPrecel/PKUP/internal/view"
 	"github.com/pPrecel/PKUP/pkg/github"
 	"github.com/pPrecel/PKUP/pkg/period"
 	"github.com/sirupsen/logrus"
@@ -155,63 +156,65 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 		mergedAfter.Local().Format(logTimeFormat),
 		mergedBefore.Local().Format(logTimeFormat))
 
+	multiView := view.NewMultiTaskView()
 	for org, repos := range opts.repos {
 		for i := range repos {
+			org := org
 			repo := repos[i]
 
-			opts.Log.Infof("processing '%s/%s' repo", org, repo)
-			prs, err := client.ListUserPRsForRepo(github.Options{
-				Org:          org,
-				Repo:         repo,
-				Username:     opts.username,
-				MergedAfter:  mergedAfter,
-				MergedBefore: mergedBefore,
-			})
-			if err != nil {
-				return fmt.Errorf("list users PRs in repo '%s/%s' error: %s",
-					org,
-					repo,
-					err.Error(),
-				)
-			}
+			valChan := make(chan []string)
+			errChan := make(chan error)
+			multiView.Add(fmt.Sprintf("%s/%s", org, repo), valChan, errChan)
+			go func() {
+				defer close(errChan)
+				defer close(valChan)
 
-			printPRs(opts.Log, opts.username, prs)
+				prs, err := client.ListUserPRsForRepo(github.Options{
+					Org:          org,
+					Repo:         repo,
+					Username:     opts.username,
+					MergedAfter:  mergedAfter,
+					MergedBefore: mergedBefore,
+				})
+				if err != nil {
+					errChan <- fmt.Errorf("list users PRs in repo '%s/%s' error: %s", org, repo, err.Error())
+					return
+				}
 
-			diff, err := client.GetFileDiffForPRs(prs, org, repo)
-			if err != nil {
-				return fmt.Errorf("get diff for repo '%s/%s' error: %s",
-					org,
-					repo,
-					err.Error(),
-				)
-			}
+				diff, err := client.GetFileDiffForPRs(prs, org, repo)
+				if err != nil {
+					errChan <- fmt.Errorf("get diff for repo '%s/%s' error: %s", org, repo, err.Error())
+					return
+				}
 
-			if diff == "" {
-				opts.Log.Warnf("skipping '%s/%s' no user activity detected", org, repo)
-				continue
-			}
+				if diff != "" {
+					filename := fmt.Sprintf("%s_%s.patch", org, repo)
+					err = file.Create(opts.dir, filename, diff)
+					if err != nil {
+						errChan <- fmt.Errorf("save file '%s' error: %s", filename, err.Error())
+						return
+					}
+				}
 
-			filename := fmt.Sprintf("%s_%s.patch", org, repo)
-			err = file.Create(opts.dir, filename, diff)
-			if err != nil {
-				return fmt.Errorf("save file '%s' error: %s",
-					filename,
-					err.Error(),
-				)
-			}
-
-			opts.Log.Infof("patch saved to file '%s/%s'", opts.dir, filename)
+				valChan <- prsToStringList(prs)
+			}()
 		}
 	}
 
+	multiView.Run()
+
+	opts.Log.Infof("all patch files saved to '%s' dir", opts.dir)
 	return nil
 }
 
-func printPRs(log *logrus.Logger, username string, prs []*gh.PullRequest) {
+func prsToStringList(prs []*gh.PullRequest) []string {
+	list := []string{}
 	for i := range prs {
 		pr := *prs[i]
-		log.Infof("\tuser '%s' is an author of '%s'", username, pr.GetTitle())
+		list = append(list, *pr.Title)
 	}
+
+	return list
 }
 
 func parseReposMap(log *logrus.Logger, args []string) (map[string][]string, error) {
