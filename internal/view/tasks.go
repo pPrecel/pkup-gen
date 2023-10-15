@@ -2,6 +2,7 @@ package view
 
 import (
 	"fmt"
+	"io"
 
 	"github.com/pkg/errors"
 	"github.com/pterm/pterm"
@@ -25,6 +26,7 @@ func init() {
 type MultiTaskView interface {
 	Run() error
 	Add(string, chan []string, chan error)
+	NewWriter() io.Writer
 }
 
 type taskChannels struct {
@@ -33,13 +35,19 @@ type taskChannels struct {
 }
 
 type multiTaskView struct {
-	tasks map[string]taskChannels
+	multiPrinter pterm.MultiPrinter
+	tasks        map[string]taskChannels
 }
 
 func NewMultiTaskView() MultiTaskView {
 	return &multiTaskView{
-		tasks: map[string]taskChannels{},
+		multiPrinter: pterm.DefaultMultiPrinter,
+		tasks:        map[string]taskChannels{},
 	}
+}
+
+func (mtv *multiTaskView) NewWriter() io.Writer {
+	return mtv.multiPrinter.NewWriter()
 }
 
 func (mtv *multiTaskView) Add(name string, valuesChan chan []string, errorChan chan error) {
@@ -50,14 +58,12 @@ func (mtv *multiTaskView) Add(name string, valuesChan chan []string, errorChan c
 }
 
 func (mtv *multiTaskView) Run() error {
-	multi := pterm.DefaultMultiPrinter
-	workingSpinners, err := startSpinnersWithPrinter(mtv.tasks, &multi)
+	workingSpinners, err := startSpinnersWithPrinter(mtv.tasks, &mtv.multiPrinter)
 	if err != nil {
 		return err
 	}
 
-	multi.Start()
-
+	mtv.multiPrinter.Start()
 	for len(workingSpinners) > 0 {
 		for name, channels := range mtv.tasks {
 			n := name
@@ -88,7 +94,7 @@ func (mtv *multiTaskView) Run() error {
 		}
 	}
 
-	multi.Stop()
+	mtv.multiPrinter.Stop()
 	return nil
 }
 

@@ -1,11 +1,12 @@
 package github
 
 import (
+	"fmt"
 	"sort"
 	"time"
 
 	"github.com/google/go-github/v53/github"
-	"github.com/sirupsen/logrus"
+	"github.com/pterm/pterm"
 )
 
 const (
@@ -54,7 +55,7 @@ func (gh *gh_client) listUserPRsForRepo(opts Options, page int) ([]*github.PullR
 		return nil, true, err
 	}
 
-	gh.log.Debugf("listed %d PRs on the page", len(pagePRs))
+	gh.log.Debug(fmt.Sprintf("listed %d PRs on the page", len(pagePRs)))
 
 	sort.Slice(pagePRs, func(i, j int) bool {
 		return pagePRs[i].GetMergedAt().After(
@@ -65,7 +66,7 @@ func (gh *gh_client) listUserPRsForRepo(opts Options, page int) ([]*github.PullR
 	filtered := filterPRsByMergedAt(gh.log, pagePRs, opts)
 	pullRequests, err := gh.listUserPRs(filtered, opts)
 
-	gh.log.Debugf("\t%d PRs are related with user %s", len(pullRequests), opts.Username)
+	gh.log.Debug(fmt.Sprintf("\t%d PRs are related with user %s", len(pullRequests), opts.Username))
 	return pullRequests,
 		len(pagePRs) < perPage,
 		err
@@ -83,18 +84,24 @@ func (gh *gh_client) listUserPRs(prs []*github.PullRequest, opts Options) ([]*gi
 		}
 
 		if !isAuthorOrCommitter(gh.log, commits, opts.Username) {
-			gh.log.Debugf("\t%s is NOT one of the authors of the '%s'", opts.Username, pr.GetTitle())
+			gh.log.Trace("user is NOT one of the authors of the pr", gh.log.Args(
+				"username", opts.Username,
+				"pr", pr.GetTitle(),
+			))
 			continue
 		}
 
-		gh.log.Debugf("\t%s is one of the authors of the '%s'", opts.Username, pr.GetTitle())
+		gh.log.Trace("user is one of the authors of the pr", gh.log.Args(
+			"username", opts.Username,
+			"pr", pr.GetTitle(),
+		))
 		userPRs = append(userPRs, pr)
 	}
 
 	return userPRs, nil
 }
 
-func filterPRsByMergedAt(log *logrus.Logger, prs []*github.PullRequest, opts Options) []*github.PullRequest {
+func filterPRsByMergedAt(log *pterm.Logger, prs []*github.PullRequest, opts Options) []*github.PullRequest {
 	filtered := []*github.PullRequest{}
 	for i := range prs {
 		pr := *prs[i]
@@ -105,19 +112,19 @@ func filterPRsByMergedAt(log *logrus.Logger, prs []*github.PullRequest, opts Opt
 
 	}
 
-	log.Debugf("\t%d PRs in the period on this page", len(filtered))
+	log.Debug(fmt.Sprintf("\t%d PRs in the period on this page", len(filtered)))
 	return filtered
 }
 
-func isAuthorOrCommitter(log *logrus.Logger, commits []*github.RepositoryCommit, userName string) bool {
+func isAuthorOrCommitter(log *pterm.Logger, commits []*github.RepositoryCommit, userName string) bool {
 	for i := range commits {
 		commit := commits[i]
 
-		log.Debugf("\t\t'%s' is author and '%s' is committer of '%s'",
-			commit.Author.GetLogin(),
-			commit.Committer.GetLogin(),
-			commit.Commit.GetMessage(),
-		)
+		log.Trace("user and author on the commit", log.Args(
+			"commit", commit.Commit.GetMessage(),
+			"author", commit.Author.GetLogin(),
+			"commiter", commit.Committer.GetLogin(),
+		))
 
 		if commit != nil &&
 			((commit.Author != nil &&

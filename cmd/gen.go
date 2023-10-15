@@ -12,7 +12,7 @@ import (
 	"github.com/pPrecel/PKUP/internal/view"
 	"github.com/pPrecel/PKUP/pkg/github"
 	"github.com/pPrecel/PKUP/pkg/period"
-	"github.com/sirupsen/logrus"
+	"github.com/pterm/pterm"
 	"github.com/urfave/cli/v2"
 )
 
@@ -119,12 +119,20 @@ func NewGenCommand(opts *Options) *cli.Command {
 				},
 			},
 			&cli.BoolFlag{
-				Name:               "verbose",
-				Aliases:            []string{"v"},
-				Usage:              "verbose mode",
+				Name:               "v",
+				Usage:              "verbose log mode",
 				DisableDefaultText: true,
 				Action: func(_ *cli.Context, _ bool) error {
-					actionsOpts.Log.Level = logrus.DebugLevel
+					actionsOpts.Log.Level = pterm.LogLevelDebug
+					return nil
+				},
+			},
+			&cli.BoolFlag{
+				Name:               "vv",
+				Usage:              "trace log mode",
+				DisableDefaultText: true,
+				Action: func(_ *cli.Context, _ bool) error {
+					actionsOpts.Log.Level = pterm.LogLevelTrace
 					return nil
 				},
 			},
@@ -144,19 +152,21 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 		opts.dir = pwd
 	}
 
+	multiView := view.NewMultiTaskView()
+	log := opts.Log.WithWriter(multiView.NewWriter())
 	client, err := github.NewClient(
-		ctx.Context, opts.Log, opts.token, opts.enterpriseURL,
+		ctx.Context, log, opts.token, opts.enterpriseURL,
 	)
 	if err != nil {
 		return fmt.Errorf("create Github client error: %s", err.Error())
 	}
 
 	mergedAfter, mergedBefore := period.GetLastPKUP(opts.perdiod)
-	opts.Log.Infof("looking for changes beteen %s and %s",
-		mergedAfter.Local().Format(logTimeFormat),
-		mergedBefore.Local().Format(logTimeFormat))
+	log.Info("generating artifacts for the actual PKUP period", log.Args(
+		"after", mergedAfter.Local().Format(logTimeFormat),
+		"before", mergedBefore.Local().Format(logTimeFormat),
+	))
 
-	multiView := view.NewMultiTaskView()
 	for org, repos := range opts.repos {
 		for i := range repos {
 			org := org
@@ -169,42 +179,65 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 				defer close(errChan)
 				defer close(valChan)
 
-				prs, err := client.ListUserPRsForRepo(github.Options{
-					Org:          org,
-					Repo:         repo,
-					Username:     opts.username,
-					MergedAfter:  mergedAfter,
-					MergedBefore: mergedBefore,
+				prs, err := listUserPRsToFile(client, &listToFileOpts{
+					org:          org,
+					repo:         repo,
+					username:     opts.username,
+					dir:          opts.dir,
+					mergedAfter:  mergedAfter,
+					mergedBefore: mergedBefore,
 				})
 				if err != nil {
-					errChan <- fmt.Errorf("list users PRs in repo '%s/%s' error: %s", org, repo, err.Error())
+					errChan <- err
 					return
 				}
 
-				diff, err := client.GetFileDiffForPRs(prs, org, repo)
-				if err != nil {
-					errChan <- fmt.Errorf("get diff for repo '%s/%s' error: %s", org, repo, err.Error())
-					return
-				}
-
-				if diff != "" {
-					filename := fmt.Sprintf("%s_%s.patch", org, repo)
-					err = file.Create(opts.dir, filename, diff)
-					if err != nil {
-						errChan <- fmt.Errorf("save file '%s' error: %s", filename, err.Error())
-						return
-					}
-				}
-
-				valChan <- prsToStringList(prs)
+				valChan <- prs
 			}()
 		}
 	}
 
 	multiView.Run()
 
-	opts.Log.Infof("all patch files saved to '%s' dir", opts.dir)
+	log.Info("all patch files saved to dir", log.Args("dir", opts.dir))
 	return nil
+}
+
+type listToFileOpts struct {
+	org          string
+	repo         string
+	username     string
+	dir          string
+	mergedAfter  time.Time
+	mergedBefore time.Time
+}
+
+func listUserPRsToFile(client github.Client, opts *listToFileOpts) ([]string, error) {
+	prs, err := client.ListUserPRsForRepo(github.Options{
+		Org:          opts.org,
+		Repo:         opts.repo,
+		Username:     opts.username,
+		MergedAfter:  opts.mergedAfter,
+		MergedBefore: opts.mergedBefore,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("list users PRs in repo '%s/%s' error: %s", opts.org, opts.repo, err.Error())
+	}
+
+	diff, err := client.GetFileDiffForPRs(prs, opts.org, opts.repo)
+	if err != nil {
+		return nil, fmt.Errorf("get diff for repo '%s/%s' error: %s", opts.org, opts.repo, err.Error())
+	}
+
+	if diff != "" {
+		filename := fmt.Sprintf("%s_%s.patch", opts.org, opts.repo)
+		err = file.Create(opts.dir, filename, diff)
+		if err != nil {
+			return nil, fmt.Errorf("save file '%s' error: %s", filename, err.Error())
+		}
+	}
+
+	return prsToStringList(prs), nil
 }
 
 func prsToStringList(prs []*gh.PullRequest) []string {
@@ -217,12 +250,12 @@ func prsToStringList(prs []*gh.PullRequest) []string {
 	return list
 }
 
-func parseReposMap(log *logrus.Logger, args []string) (map[string][]string, error) {
+func parseReposMap(log *pterm.Logger, args []string) (map[string][]string, error) {
 	repos := map[string][]string{}
 	for i := range args {
 		arg := args[i]
 
-		log.Debugf("parsing '%s' repo flag", arg)
+		log.Debug("parsing flag", log.Args("argument", arg))
 		argSlice := strings.Split(arg, "/")
 		if len(argSlice) != 2 {
 			return nil, fmt.Errorf("repo '%s' must be in format <org>/<repo>", arg)

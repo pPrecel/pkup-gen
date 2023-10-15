@@ -5,7 +5,7 @@ import (
 	"os"
 
 	"github.com/pPrecel/PKUP/cmd"
-	"github.com/sirupsen/logrus"
+	"github.com/pterm/pterm"
 	"github.com/urfave/cli/v2"
 )
 
@@ -25,11 +25,11 @@ var (
 )
 
 func main() {
-	log := logrus.New()
-
 	// print logo before any action
 	fmt.Printf("%s\n\n", logo)
 
+	log := pterm.DefaultLogger.
+		WithTime(false)
 	opts := &cmd.Options{
 		Version: version,
 		Log:     log,
@@ -53,6 +53,6 @@ func main() {
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		log.Fatal(err)
+		log.Fatal("program error", log.Args("error", err))
 	}
 }

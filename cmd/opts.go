@@ -1,12 +1,12 @@
 package cmd
 
 import (
-	"github.com/sirupsen/logrus"
+	"github.com/pterm/pterm"
 )
 
 type Options struct {
 	Version string
-	Log     *logrus.Logger
+	Log     *pterm.Logger
 }
 
 type genActionOpts struct {

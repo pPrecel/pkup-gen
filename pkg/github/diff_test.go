@@ -3,13 +3,13 @@ package github
 import (
 	"context"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http/httptest"
 	"net/url"
 	"testing"
 
 	"github.com/google/go-github/v53/github"
-	"github.com/sirupsen/logrus"
+	"github.com/pterm/pterm"
 	"github.com/stretchr/testify/require"
 )
 
@@ -31,9 +31,9 @@ func Test_gh_client_GetFileDiffForPRs(t *testing.T) {
 	})
 }
 
-func fixLogger() *logrus.Logger {
-	log := logrus.New()
-	log.Out = ioutil.Discard
+func fixLogger() *pterm.Logger {
+	log := &pterm.DefaultLogger
+	log.Writer = io.Discard
 	return log
 }
 

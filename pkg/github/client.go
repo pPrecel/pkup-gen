@@ -4,16 +4,21 @@ import (
 	"context"
 
 	"github.com/google/go-github/v53/github"
-	"github.com/sirupsen/logrus"
+	"github.com/pterm/pterm"
 )
+
+type Client interface {
+	GetFileDiffForPRs([]*github.PullRequest, string, string) (string, error)
+	ListUserPRsForRepo(Options) ([]*github.PullRequest, error)
+}
 
 type gh_client struct {
 	ctx    context.Context
-	log    *logrus.Logger
+	log    *pterm.Logger
 	client *github.Client
 }
 
-func NewClient(ctx context.Context, logger *logrus.Logger, token, enterpriseURL string) (*gh_client, error) {
+func NewClient(ctx context.Context, logger *pterm.Logger, token, enterpriseURL string) (Client, error) {
 	client := github.NewTokenClient(ctx, token)
 	if enterpriseURL != "" {
 		enterpriseClient, err := github.NewEnterpriseClient(
