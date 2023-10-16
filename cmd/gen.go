@@ -119,7 +119,7 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 func warnOnNewRelease(client github.Client, opts *genActionOpts) {
 	latestVersion, err := client.GetLatestReleaseOrZero(opts.ProjectOwner, opts.ProjectRepo)
 	if err != nil {
-		opts.Log.Warn("failed to check latest available release", opts.Log.Args(
+		opts.Log.Warn("failed to check the latest available release", opts.Log.Args(
 			"error", err.Error(),
 		))
 		return
