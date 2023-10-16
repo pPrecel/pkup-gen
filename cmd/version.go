@@ -68,9 +68,11 @@ func getVersionData(opts *versionActionOpts) map[string]string {
 	data := map[string]string{}
 	data["version"] = opts.BuildVersion
 	if opts.v {
+		data["project-url"] = fmt.Sprintf("https://github.com/%s/%s", opts.ProjectOwner, opts.ProjectRepo)
 		data["build-commit"] = opts.BuildCommit
 		data["build-data"] = opts.BuildDate
 	} else if opts.vv {
+		data["project-url"] = fmt.Sprintf("https://github.com/%s/%s", opts.ProjectOwner, opts.ProjectRepo)
 		data["build-commit"] = opts.BuildCommit
 		data["build-data"] = opts.BuildDate
 		data["build-arch"] = opts.BuildArch

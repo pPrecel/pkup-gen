@@ -52,6 +52,8 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 		return fmt.Errorf("create Github client error: %s", err.Error())
 	}
 
+	warnOnNewRelease(client, opts)
+
 	mergedAfter, mergedBefore := period.GetLastPKUP(opts.perdiod)
 	log.Info("generating artifacts for the actual PKUP period", log.Args(
 		"after", mergedAfter.Local().Format(logTimeFormat),
@@ -93,6 +95,8 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 				prs, err := artifacts.GenUserArtifactsToFile(client, &config)
 
 				log.Debug("ending process for repo", log.Args(
+					"org", config.Org,
+					"repo", config.Repo,
 					"prs", prs,
 					"error", err,
 				))
@@ -110,4 +114,20 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 
 	opts.Log.Info("all patch files saved to dir", opts.Log.Args("dir", opts.dir))
 	return nil
+}
+
+func warnOnNewRelease(client github.Client, opts *genActionOpts) {
+	latestVersion, err := client.GetLatestReleaseOrZero(opts.ProjectOwner, opts.ProjectRepo)
+	if err != nil {
+		opts.Log.Warn("failed to check latest available release", opts.Log.Args(
+			"error", err.Error(),
+		))
+		return
+	}
+	if opts.BuildVersion != "local" && opts.BuildVersion != latestVersion {
+		opts.Log.Warn("new pkup-gen release detected - upgrade to get all features and fixes", opts.Log.Args(
+			"buildVersion", opts.BuildVersion,
+			"latestVersion", latestVersion,
+		))
+	}
 }

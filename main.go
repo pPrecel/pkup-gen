@@ -9,11 +9,13 @@ import (
 )
 
 var (
-	version   = "local"
-	commit    = "local"
-	date      = "local"
-	buildOs   = "local"
-	buildArch = "local"
+	version      = "local"
+	commit       = "local"
+	date         = "local"
+	buildOs      = "local"
+	buildArch    = "local"
+	projectOwner = "pPrecel"
+	projectRepo  = "pkup-gen"
 )
 
 func main() {
@@ -25,6 +27,8 @@ func main() {
 		BuildDate:    date,
 		BuildOs:      buildOs,
 		BuildArch:    buildArch,
+		ProjectOwner: projectOwner,
+		ProjectRepo:  projectRepo,
 		Log:          log,
 	}
 

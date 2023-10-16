@@ -38,6 +38,30 @@ func (_m *Client) GetFileDiffForPRs(_a0 []*github.PullRequest, _a1 string, _a2 s
 	return r0, r1
 }
 
+// GetLatestReleaseOrZero provides a mock function with given fields: _a0, _a1
+func (_m *Client) GetLatestReleaseOrZero(_a0 string, _a1 string) (string, error) {
+	ret := _m.Called(_a0, _a1)
+
+	var r0 string
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string) (string, error)); ok {
+		return rf(_a0, _a1)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) string); ok {
+		r0 = rf(_a0, _a1)
+	} else {
+		r0 = ret.Get(0).(string)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) error); ok {
+		r1 = rf(_a0, _a1)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
 // ListUserPRsForRepo provides a mock function with given fields: _a0, _a1
 func (_m *Client) ListUserPRsForRepo(_a0 pkggithub.Options, _a1 []pkggithub.FilterFunc) ([]*github.PullRequest, error) {
 	ret := _m.Called(_a0, _a1)

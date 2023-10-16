@@ -13,6 +13,8 @@ type Options struct {
 	BuildDate    string
 	BuildOs      string
 	BuildArch    string
+	ProjectOwner string
+	ProjectRepo  string
 	Log          *pterm.Logger
 }
 
