@@ -1,3 +1,7 @@
 .out/
 tmp/
 .vscode/
+
+# development
+kyma-project_*
+kyma-incubator_*
