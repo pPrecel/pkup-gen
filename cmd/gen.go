@@ -39,7 +39,7 @@ func NewGenCommand(opts *Options) *cli.Command {
 }
 
 func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
-	multiView := view.NewMultiTaskView()
+	multiView := view.NewMultiTaskView(opts.Log, opts.ci)
 	log := opts.Log.WithWriter(multiView.NewWriter())
 
 	client, err := github.NewClient(ctx.Context, log, opts.token, opts.enterpriseURL)

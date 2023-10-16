@@ -99,8 +99,18 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 		&cli.BoolFlag{
 			Name:        "with-closed",
 			Usage:       "count closed (not merged) PullRequests",
-			Aliases:     []string{"c", "closed"},
+			Aliases:     []string{"wc", "closed"},
 			Destination: &opts.withClosed,
+		},
+		&cli.BoolFlag{
+			Name:    "ci",
+			Usage:   "print output using standard log and JSON format",
+			Aliases: []string{"c"},
+			Action: func(_ *cli.Context, b bool) error {
+				opts.ci = b
+				opts.Log = opts.Log.WithFormatter(pterm.LogFormatterJSON)
+				return nil
+			},
 		},
 		&cli.BoolFlag{
 			Name:               "v",

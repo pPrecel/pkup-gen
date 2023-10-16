@@ -41,6 +41,13 @@ func (gh *gh_client) ListUserPRsForRepo(opts Options) ([]*github.PullRequest, er
 			return nil, err
 		}
 
+		gh.log.Debug("prs on the page", gh.log.Args(
+			"org", opts.Org,
+			"repo", opts.Repo,
+			"page", page,
+			"prs", len(prs),
+		))
+
 		userPullRequests = append(userPullRequests, prs...)
 
 		if wasLast {
@@ -114,7 +121,7 @@ func (gh *gh_client) listUserPRs(prs []*github.PullRequest, opts Options) ([]*gi
 			continue
 		}
 
-		gh.log.Trace("user is one of the authors of the pr", gh.log.Args(
+		gh.log.Debug("user is one of the authors of the pr", gh.log.Args(
 			"org", opts.Org,
 			"repo", opts.Repo,
 			"username", opts.Username,

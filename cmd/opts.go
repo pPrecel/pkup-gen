@@ -21,6 +21,7 @@ type genActionOpts struct {
 	token         string
 	enterpriseURL string
 	withClosed    bool
+	ci            bool
 }
 
 func (opts *genActionOpts) setDefaults() error {

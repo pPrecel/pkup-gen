@@ -23,41 +23,32 @@ func init() {
 	}
 }
 
-type MultiTaskView interface {
-	Run() error
-	Add(string, chan []string, chan error)
-	NewWriter() io.Writer
-}
-
-type taskChannels struct {
-	valuesChan chan []string
-	errorChan  chan error
-}
-
-type multiTaskView struct {
+type dynamicMultiView struct {
+	log          *pterm.Logger
 	multiPrinter pterm.MultiPrinter
 	tasks        map[string]taskChannels
 }
 
-func NewMultiTaskView() MultiTaskView {
-	return &multiTaskView{
+func newDynamic(log *pterm.Logger) MultiTaskView {
+	return &dynamicMultiView{
+		log:          log,
 		multiPrinter: pterm.DefaultMultiPrinter,
 		tasks:        map[string]taskChannels{},
 	}
 }
 
-func (mtv *multiTaskView) NewWriter() io.Writer {
+func (mtv *dynamicMultiView) NewWriter() io.Writer {
 	return mtv.multiPrinter.NewWriter()
 }
 
-func (mtv *multiTaskView) Add(name string, valuesChan chan []string, errorChan chan error) {
+func (mtv *dynamicMultiView) Add(name string, valuesChan chan []string, errorChan chan error) {
 	mtv.tasks[name] = taskChannels{
 		valuesChan: valuesChan,
 		errorChan:  errorChan,
 	}
 }
 
-func (mtv *multiTaskView) Run() error {
+func (mtv *dynamicMultiView) Run() error {
 	workingSpinners, err := startSpinnersWithPrinter(mtv.tasks, &mtv.multiPrinter)
 	if err != nil {
 		return err
@@ -66,36 +57,39 @@ func (mtv *multiTaskView) Run() error {
 	mtv.multiPrinter.Start()
 	for len(workingSpinners) > 0 {
 		for name, channels := range mtv.tasks {
-			n := name
-			chs := channels
-			select {
-			case err, ok := <-chs.errorChan:
-				if ok {
-					workingSpinners[n].Fail(err)
-				}
-
-				delete(workingSpinners, n)
-			case PRs, ok := <-chs.valuesChan:
-				if ok {
-					if len(PRs) == 0 {
-						workingSpinners[n].Warning(
-							fmt.Sprintf("skipping '%s' no user activity detected", n),
-						)
-					} else {
-						text := buildPRsTreeString(
-							fmt.Sprintf("found %d PRs for repo '%s'", len(PRs), n), PRs,
-						)
-						workingSpinners[n].Success(text)
-					}
-				}
-				delete(workingSpinners, n)
-			default:
+			if selectChannelsForSpinners(workingSpinners, name, channels) {
+				delete(workingSpinners, name)
 			}
 		}
 	}
 
 	mtv.multiPrinter.Stop()
 	return nil
+}
+
+func selectChannelsForSpinners(workingSpinners map[string]*pterm.SpinnerPrinter, taskName string, channels taskChannels) bool {
+	select {
+	case err, ok := <-channels.errorChan:
+		if ok {
+			workingSpinners[taskName].Fail(err)
+		}
+	case PRs, ok := <-channels.valuesChan:
+		if ok {
+			if len(PRs) == 0 {
+				workingSpinners[taskName].Warning(
+					fmt.Sprintf("skipping '%s' no user activity detected", taskName),
+				)
+			} else {
+				text := buildPRsTreeString(
+					fmt.Sprintf("found %d PRs for repo '%s'", len(PRs), taskName), PRs,
+				)
+				workingSpinners[taskName].Success(text)
+			}
+		}
+	default:
+		return false
+	}
+	return true
 }
 
 func buildPRsTreeString(rootText string, PRs []string) string {
