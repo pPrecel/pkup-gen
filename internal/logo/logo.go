@@ -35,6 +35,6 @@ func Build(version string) string {
 		pkupLayers[3], pterm.Bold.Sprint(pterm.LightRed(genLayers[3])), "\n",
 		pkupLayers[4], pterm.Bold.Sprint(pterm.LightRed(genLayers[4])), "\n",
 		pkupLayers[5], pterm.Bold.Sprint(pterm.LightRed(genLayers[5])), "\n",
-		pkupLayers[6], pterm.Bold.Sprint(pterm.LightRed(genLayers[6])), pterm.Bold.Sprint(pterm.Gray("v", version)),
+		pkupLayers[6], pterm.Bold.Sprint(pterm.LightRed(genLayers[6])), pterm.Bold.Sprint(pterm.Gray(version)),
 	)
 }
