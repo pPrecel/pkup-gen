@@ -1,7 +1,6 @@
 package github
 
 import (
-	"fmt"
 	"sort"
 	"time"
 
@@ -21,83 +20,66 @@ type Options struct {
 	Org          string
 	Repo         string
 	Username     string
-	WithClosed   bool
 	MergedBefore time.Time
 	MergedAfter  time.Time
 }
 
-func (gh *gh_client) ListUserPRsForRepo(opts Options) ([]*github.PullRequest, error) {
+func (gh *gh_client) ListUserPRsForRepo(opts Options, filters []FilterFunc) ([]*github.PullRequest, error) {
+	allUserPRs, err := gh.listLastPRsForRepo(opts, filters)
+	if err != nil {
+		return nil, err
+	}
+
+	sorted := sortPRsByMergedAt(allUserPRs)
+	filtered := gh.fireFilters(sorted, opts, filters)
+
+	pullRequests, err := gh.listUserPRs(filtered, opts)
+	if err != nil {
+		return nil, err
+	}
+
+	gh.log.Trace("PRs related with user", gh.log.Args(
+		"org", opts.Org,
+		"repo", opts.Repo,
+		"username", opts.Username,
+		"count", len(pullRequests),
+	))
+
+	return pullRequests, nil
+}
+
+func (gh *gh_client) listLastPRsForRepo(opts Options, filters []FilterFunc) ([]*github.PullRequest, error) {
 	userPullRequests := []*github.PullRequest{}
 	page := 1
 
-	filters := []filterFunc{filterPRsByMergedAt}
-	if opts.WithClosed {
-		filters = append(filters, filterPRsByClosedAt)
-	}
-
 	for page <= maxPage {
-		prs, wasLast, err := gh.listUserPRsForRepo(opts, page, filters)
+		pagePRs, _, err := gh.client.PullRequests.List(gh.ctx, opts.Org, opts.Repo, &github.PullRequestListOptions{
+			State: "closed",
+			ListOptions: github.ListOptions{
+				PerPage: perPage, // max
+				Page:    page,
+			},
+		})
 		if err != nil {
 			return nil, err
 		}
 
-		gh.log.Debug("prs on the page", gh.log.Args(
+		gh.log.Trace("prs on the page", gh.log.Args(
 			"org", opts.Org,
 			"repo", opts.Repo,
 			"page", page,
-			"prs", len(prs),
+			"prs", len(pagePRs),
 		))
 
-		userPullRequests = append(userPullRequests, prs...)
+		userPullRequests = append(userPullRequests, pagePRs...)
 
-		if wasLast {
+		if len(pagePRs) < perPage {
 			break
 		}
 		page++
 	}
 
 	return userPullRequests, nil
-}
-
-type filterFunc func(*pterm.Logger, []*github.PullRequest, Options) []*github.PullRequest
-
-func (gh *gh_client) listUserPRsForRepo(opts Options, page int, filters []filterFunc) ([]*github.PullRequest, bool, error) {
-	pagePRs, _, err := gh.client.PullRequests.List(gh.ctx, opts.Org, opts.Repo, &github.PullRequestListOptions{
-		State: "closed",
-		ListOptions: github.ListOptions{
-			PerPage: perPage, // max
-			Page:    page,
-		},
-	})
-	if err != nil {
-		return nil, true, err
-	}
-
-	gh.log.Trace(fmt.Sprintf("listed %d PRs on the page", len(pagePRs)), gh.log.Args(
-		"org", opts.Org,
-		"repo", opts.Repo,
-	))
-
-	sort.Slice(pagePRs, func(i, j int) bool {
-		return pagePRs[i].GetMergedAt().After(
-			pagePRs[j].GetMergedAt().Time,
-		)
-	})
-
-	filtered := []*github.PullRequest{}
-	for i := range filters {
-		filtered = append(filtered, filters[i](gh.log, pagePRs, opts)...)
-	}
-
-	pullRequests, err := gh.listUserPRs(filtered, opts)
-
-	gh.log.Trace(fmt.Sprintf("%d PRs are related with user %s", len(pullRequests), opts.Username), gh.log.Args(
-		"org", opts.Org,
-		"repo", opts.Repo,
-	))
-	return pullRequests,
-		len(pagePRs) < perPage,
-		err
 }
 
 func (gh *gh_client) listUserPRs(prs []*github.PullRequest, opts Options) ([]*github.PullRequest, error) {
@@ -154,4 +136,13 @@ func isAuthorOrCommitter(log *pterm.Logger, commits []*github.RepositoryCommit, 
 	}
 
 	return false
+}
+
+func sortPRsByMergedAt(prs []*github.PullRequest) []*github.PullRequest {
+	sort.Slice(prs, func(i, j int) bool {
+		return prs[i].GetMergedAt().After(
+			prs[j].GetMergedAt().Time,
+		)
+	})
+	return prs
 }

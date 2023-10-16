@@ -38,10 +38,9 @@ func TestGenUserArtifactsToFile(t *testing.T) {
 			Org:          "test-org",
 			Repo:         "test-repo",
 			Username:     "test-username",
-			WithClosed:   true,
 			MergedBefore: time.Time{},
 			MergedAfter:  time.Time{},
-		}).Return(testPRs, nil).Once()
+		}, mock.Anything).Return(testPRs, nil).Once()
 
 		prs, err := GenUserArtifactsToFile(clientMock, &GenerateOpts{
 			Org:          "test-org",
@@ -73,10 +72,9 @@ func TestGenUserArtifactsToFile(t *testing.T) {
 			Org:          "test-org",
 			Repo:         "test-repo",
 			Username:     "test-username",
-			WithClosed:   true,
 			MergedBefore: time.Time{},
 			MergedAfter:  time.Time{},
-		}).Return(nil, errors.New("test error")).Once()
+		}, mock.Anything).Return(nil, errors.New("test error")).Once()
 
 		prs, err := GenUserArtifactsToFile(clientMock, &GenerateOpts{
 			Org:          "test-org",
@@ -98,10 +96,9 @@ func TestGenUserArtifactsToFile(t *testing.T) {
 			Org:          "test-org",
 			Repo:         "test-repo",
 			Username:     "test-username",
-			WithClosed:   true,
 			MergedBefore: time.Time{},
 			MergedAfter:  time.Time{},
-		}).Return([]*gh.PullRequest{}, nil).Once()
+		}, mock.Anything).Return([]*gh.PullRequest{}, nil).Once()
 
 		prs, err := GenUserArtifactsToFile(clientMock, &GenerateOpts{
 			Org:          "test-org",

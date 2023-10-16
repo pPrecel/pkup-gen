@@ -65,7 +65,7 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 				defer close(errChan)
 				defer close(valChan)
 
-				prs, err := artifacts.GenUserArtifactsToFile(client, &artifacts.GenerateOpts{
+				config := artifacts.GenerateOpts{
 					Org:          org,
 					Repo:         repo,
 					Username:     opts.username,
@@ -73,7 +73,24 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 					WithClosed:   opts.withClosed,
 					MergedAfter:  mergedAfter,
 					MergedBefore: mergedBefore,
-				})
+				}
+
+				log.Debug("starting process for repo with config", log.Args(
+					"org", config.Org,
+					"repo", config.Repo,
+					"username", config.Username,
+					"dir", config.Dir,
+					"withClosed", config.WithClosed,
+					"mergedAfter", config.MergedAfter.String(),
+					"mergedBefore", config.MergedBefore.String(),
+				))
+
+				prs, err := artifacts.GenUserArtifactsToFile(client, &config)
+
+				log.Debug("ending process for repo", log.Args(
+					"prs", prs,
+					"error", err,
+				))
 				if err != nil {
 					errChan <- err
 					return

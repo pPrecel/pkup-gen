@@ -7,7 +7,9 @@ import (
 	"github.com/pterm/pterm"
 )
 
-func filterPRsByClosedAt(log *pterm.Logger, prs []*github.PullRequest, opts Options) []*github.PullRequest {
+type FilterFunc func(*pterm.Logger, []*github.PullRequest, Options) []*github.PullRequest
+
+func FilterPRsByClosedAt(log *pterm.Logger, prs []*github.PullRequest, opts Options) []*github.PullRequest {
 	filtered := []*github.PullRequest{}
 	for i := range prs {
 		pr := *prs[i]
@@ -25,7 +27,7 @@ func filterPRsByClosedAt(log *pterm.Logger, prs []*github.PullRequest, opts Opti
 	return filtered
 }
 
-func filterPRsByMergedAt(log *pterm.Logger, prs []*github.PullRequest, opts Options) []*github.PullRequest {
+func FilterPRsByMergedAt(log *pterm.Logger, prs []*github.PullRequest, opts Options) []*github.PullRequest {
 	filtered := []*github.PullRequest{}
 	for i := range prs {
 		pr := *prs[i]
@@ -40,5 +42,14 @@ func filterPRsByMergedAt(log *pterm.Logger, prs []*github.PullRequest, opts Opti
 		"org", opts.Org,
 		"repo", opts.Repo,
 	))
+	return filtered
+}
+
+func (gh *gh_client) fireFilters(prs []*github.PullRequest, opts Options, filters []FilterFunc) []*github.PullRequest {
+	filtered := []*github.PullRequest{}
+	for i := range filters {
+		filtered = append(filtered, filters[i](gh.log, prs, opts)...)
+	}
+
 	return filtered
 }

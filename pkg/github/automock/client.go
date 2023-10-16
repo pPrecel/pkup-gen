@@ -38,25 +38,25 @@ func (_m *Client) GetFileDiffForPRs(_a0 []*github.PullRequest, _a1 string, _a2 s
 	return r0, r1
 }
 
-// ListUserPRsForRepo provides a mock function with given fields: _a0
-func (_m *Client) ListUserPRsForRepo(_a0 pkggithub.Options) ([]*github.PullRequest, error) {
-	ret := _m.Called(_a0)
+// ListUserPRsForRepo provides a mock function with given fields: _a0, _a1
+func (_m *Client) ListUserPRsForRepo(_a0 pkggithub.Options, _a1 []pkggithub.FilterFunc) ([]*github.PullRequest, error) {
+	ret := _m.Called(_a0, _a1)
 
 	var r0 []*github.PullRequest
 	var r1 error
-	if rf, ok := ret.Get(0).(func(pkggithub.Options) ([]*github.PullRequest, error)); ok {
-		return rf(_a0)
+	if rf, ok := ret.Get(0).(func(pkggithub.Options, []pkggithub.FilterFunc) ([]*github.PullRequest, error)); ok {
+		return rf(_a0, _a1)
 	}
-	if rf, ok := ret.Get(0).(func(pkggithub.Options) []*github.PullRequest); ok {
-		r0 = rf(_a0)
+	if rf, ok := ret.Get(0).(func(pkggithub.Options, []pkggithub.FilterFunc) []*github.PullRequest); ok {
+		r0 = rf(_a0, _a1)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).([]*github.PullRequest)
 		}
 	}
 
-	if rf, ok := ret.Get(1).(func(pkggithub.Options) error); ok {
-		r1 = rf(_a0)
+	if rf, ok := ret.Get(1).(func(pkggithub.Options, []pkggithub.FilterFunc) error); ok {
+		r1 = rf(_a0, _a1)
 	} else {
 		r1 = ret.Error(1)
 	}

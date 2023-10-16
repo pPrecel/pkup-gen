@@ -81,7 +81,7 @@ func Test_gh_client_ListUserPRsForRepo(t *testing.T) {
 			Username:     "pPrecel",
 			MergedBefore: testMergedBefore,
 			MergedAfter:  testMergedAfter,
-		})
+		}, []FilterFunc{FilterPRsByMergedAt})
 		require.NoError(t, err)
 		require.Len(t, PRs, 2)
 	})

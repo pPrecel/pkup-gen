@@ -20,14 +20,17 @@ type GenerateOpts struct {
 }
 
 func GenUserArtifactsToFile(client github.Client, opts *GenerateOpts) ([]string, error) {
+	filters := []github.FilterFunc{github.FilterPRsByMergedAt}
+	if opts.WithClosed {
+		filters = append(filters, github.FilterPRsByClosedAt)
+	}
 	prs, err := client.ListUserPRsForRepo(github.Options{
 		Org:          opts.Org,
 		Repo:         opts.Repo,
 		Username:     opts.Username,
-		WithClosed:   opts.WithClosed,
 		MergedAfter:  opts.MergedAfter,
 		MergedBefore: opts.MergedBefore,
-	})
+	}, filters)
 	if err != nil {
 		return nil, fmt.Errorf("list users PRs in repo '%s/%s' error: %s", opts.Org, opts.Repo, err.Error())
 	}
