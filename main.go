@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"os"
 
 	"github.com/pPrecel/PKUP/cmd"
@@ -9,30 +8,24 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
-const (
-	logo = `
-.______    __  ___  __    __  .______
-|   _  \  |  |/  / |  |  |  | |   _  \
-|  |_)  | |  '  /  |  |  |  | |  |_)  |__ _  ___ _ __
-|   ___/  |    <   |  |  |  | |   ___// _' |/ _ \ '_ \
-|  |      |  .  \  |  '--'  | |  |   | (_| |  __/ | | |
-| _|      |__|\__\  \______/  | _|    \__, |\___|_| |_|
-                                      |___/`
-)
-
 var (
-	version = "local"
+	version   = "local"
+	commit    = "local"
+	date      = "local"
+	buildOs   = "local"
+	buildArch = "local"
 )
 
 func main() {
-	// print logo before any action
-	fmt.Printf("%s\n\n", logo)
-
 	log := pterm.DefaultLogger.
 		WithTime(false)
 	opts := &cmd.Options{
-		Version: version,
-		Log:     log,
+		BuildVersion: version,
+		BuildCommit:  commit,
+		BuildDate:    date,
+		BuildOs:      buildOs,
+		BuildArch:    buildArch,
+		Log:          log,
 	}
 
 	app := &cli.App{

@@ -11,7 +11,14 @@ builds:
     binary: pkup
     main: ./main.go
     ldflags:
-      - -s -w -X main.version=v{{.Version}} -X main.commit={{.Commit}} -X main.date={{.Date}} -X main.builtBy=goreleaser
+      - -s
+      - -w 
+      - -X main.version=v{{.Version}}
+      - -X main.commit={{.Commit}}
+      - -X main.date={{.CommitDate}}
+      - -X main.buildOs={{.Os}}
+      - -X main.buildArch={{.Arch}}
+      - -X main.builtBy=goreleaser
     goos:
       - linux
       - darwin

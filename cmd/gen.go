@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/pPrecel/PKUP/internal/logo"
 	"github.com/pPrecel/PKUP/internal/view"
 	"github.com/pPrecel/PKUP/pkg/artifacts"
 	"github.com/pPrecel/PKUP/pkg/github"
@@ -30,6 +31,10 @@ func NewGenCommand(opts *Options) *cli.Command {
 		Aliases: []string{"g", "generate", "get"},
 		Flags:   getGenFlags(actionsOpts),
 		Action: func(ctx *cli.Context) error {
+			if !actionsOpts.ci {
+				// print logo before any action
+				fmt.Printf("%s\n\n", logo.Build())
+			}
 			if err := actionsOpts.setDefaults(); err != nil {
 				return err
 			}

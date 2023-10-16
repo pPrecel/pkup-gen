@@ -8,8 +8,12 @@ import (
 )
 
 type Options struct {
-	Version string
-	Log     *pterm.Logger
+	BuildVersion string
+	BuildCommit  string
+	BuildDate    string
+	BuildOs      string
+	BuildArch    string
+	Log          *pterm.Logger
 }
 
 type genActionOpts struct {
@@ -22,6 +26,13 @@ type genActionOpts struct {
 	enterpriseURL string
 	withClosed    bool
 	ci            bool
+}
+
+type versionActionOpts struct {
+	*Options
+	v  bool
+	vv bool
+	ci bool
 }
 
 func (opts *genActionOpts) setDefaults() error {
