@@ -59,7 +59,7 @@ pkup gen --token "<PAT_TOKEN>" --username "pPrecel" \
 |   ___/  |    <   |  |  |  | |   ___// _' |/ _ \ '_ \
 |  |      |  .  \  |  '--'  | |  |   | (_| |  __/ | | |
 | _|      |__|\__\  \______/  | _|    \__, |\___|_| |_|
-                                      |___/      v1.1.3
+                                      |___/     v1.1.3
 
 INFO  generating artifacts for the actual PKUP period
     ├ after: 2023-09-19 00:00:00
