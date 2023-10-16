@@ -99,6 +99,7 @@ func (gh *gh_client) listUserPRs(prs []*github.PullRequest, opts Options) ([]*gi
 				"repo", opts.Repo,
 				"username", opts.Username,
 				"pr", pr.GetTitle(),
+				"prURL", pr.GetHTMLURL(),
 			))
 			continue
 		}
@@ -108,6 +109,7 @@ func (gh *gh_client) listUserPRs(prs []*github.PullRequest, opts Options) ([]*gi
 			"repo", opts.Repo,
 			"username", opts.Username,
 			"pr", pr.GetTitle(),
+			"prURL", pr.GetHTMLURL(),
 		))
 		userPRs = append(userPRs, pr)
 	}
@@ -120,9 +122,10 @@ func isAuthorOrCommitter(log *pterm.Logger, commits []*github.RepositoryCommit, 
 		commit := commits[i]
 
 		log.Trace("user and author on the commit", log.Args(
-			"commit", commit.Commit.GetMessage(),
 			"author", commit.Author.GetLogin(),
 			"commiter", commit.Committer.GetLogin(),
+			"commitSHA", commit.GetSHA(),
+			"commitMsg", commit.Commit.GetMessage(),
 		))
 
 		if commit != nil &&
