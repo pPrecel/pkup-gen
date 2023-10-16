@@ -29,6 +29,12 @@ func (gh *gh_client) GetFileDiffForPRs(prs []*github.PullRequest, org, repo stri
 			return emptyDiff, err
 		}
 
+		gh.log.Trace("got diff for commit", gh.log.Args(
+			"org", org,
+			"repo", repo,
+			"diffLen", len(diff),
+		))
+
 		diff += fmt.Sprintf("%s\n", d)
 	}
 
