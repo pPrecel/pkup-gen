@@ -33,7 +33,7 @@ func NewGenCommand(opts *Options) *cli.Command {
 		Action: func(ctx *cli.Context) error {
 			if !actionsOpts.ci {
 				// print logo before any action
-				fmt.Printf("%s\n\n", logo.Build())
+				fmt.Printf("%s\n\n", logo.Build(opts.BuildVersion))
 			}
 			if err := actionsOpts.setDefaults(); err != nil {
 				return err
