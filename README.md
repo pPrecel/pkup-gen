@@ -63,25 +63,26 @@ pkup gen --token "<PAT_TOKEN>" --username "pPrecel" \
 INFO  generating artifacts for the actual PKUP period
     ├ after: 2023-09-19 00:00:00
     └ before: 2023-10-18 23:59:59
- ✓  found 10 PRs for repo 'kyma-project/serverless-manager'
-      ├──Fix function default preset
-      ├──Get rid of setup
-      ├──Remove unnecessary ifs from the `delete.go` file
-      ├──Make loggers more consistent
-      ├──Improve building flags mechanism
-      ├──Improve optional dependencies state function
-      ├──Apply linter suggestions
-      ├──Rename the `stopWithError` func
-      ├──Use requeueAfter secret are deleted
-      └──Implement module-config template
- ✓  found 2 PRs for repo 'kyma-project/keda-manager'
-      ├──Add more release logs
-      └──Implement module-config template
- ✓  found 2 PRs for repo 'kyma-project/test-infra'
-      ├──Fix `warden-unit-test` job
-      └──Add missing argument to the warden dind job
- ✗  skipping 'kyma-project/kyma' no user activity detected
- ✗  skipping 'kyma-incubator/reconciler' no user activity detected
+ ✓  found 11 PRs for repo 'kyma-project/serverless-manager'  (33s)
+      ├──[M] Reflect used presets in status
+      ├──[M] Fix function default preset
+      ├──[M] Get rid of setup
+      ├──[M] Remove unnecessary ifs from the `delete.go` file
+      ├──[M] Make loggers more consistent
+      ├──[M] Improve building flags mechanism
+      ├──[M] Improve optional dependencies state function
+      ├──[M] Apply linter suggestions
+      ├──[M] Rename the `stopWithError` func
+      ├──[M] Use requeueAfter secret are deleted
+      └──[M] Implement module-config template
+ ✓  found 2 PRs for repo 'kyma-project/keda-manager'  (16s)
+      ├──[M] Add more release logs
+      └──[M] Implement module-config template
+ ✓  found 2 PRs for repo 'kyma-project/test-infra'  (2m4s)
+      ├──[M] Fix `warden-unit-test` job
+      └──[M] Add missing argument to the warden dind job
+ ✗  skipping 'kyma-project/kyma' no user activity detected (1m16s)
+ ✗  skipping 'kyma-incubator/reconciler' no user activity detected (38s)
 INFO  all patch files saved to dir
     └ dir: /Users/pprecel/go/src/github.com/pPrecel/pkup-gen
 ```

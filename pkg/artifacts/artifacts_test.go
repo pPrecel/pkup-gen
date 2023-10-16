@@ -2,6 +2,7 @@ package artifacts
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path"
 	"testing"
@@ -10,6 +11,7 @@ import (
 	gh "github.com/google/go-github/v53/github"
 	"github.com/pPrecel/PKUP/pkg/github"
 	"github.com/pPrecel/PKUP/pkg/github/automock"
+	"github.com/pterm/pterm"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"k8s.io/utils/pointer"
@@ -55,8 +57,8 @@ func TestGenUserArtifactsToFile(t *testing.T) {
 		require.NoError(t, err)
 
 		expectedPRs := []string{
-			"[CLOSED] test PR 1",
-			"[MERGED] test PR 2",
+			fmt.Sprint(pterm.Red("[C]"), " test PR 1"),
+			fmt.Sprint(pterm.Magenta("[M]"), " test PR 2"),
 		}
 		require.ElementsMatch(t, expectedPRs, prs)
 

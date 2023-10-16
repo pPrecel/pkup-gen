@@ -7,6 +7,7 @@ import (
 	gh "github.com/google/go-github/v53/github"
 	"github.com/pPrecel/PKUP/internal/file"
 	"github.com/pPrecel/PKUP/pkg/github"
+	"github.com/pterm/pterm"
 )
 
 type GenerateOpts struct {
@@ -48,18 +49,15 @@ func GenUserArtifactsToFile(client github.Client, opts *GenerateOpts) ([]string,
 		}
 	}
 
-	return prsToStringList(prs, opts.WithClosed), nil
+	return prsToStringList(prs), nil
 }
 
-func prsToStringList(prs []*gh.PullRequest, signState bool) []string {
+func prsToStringList(prs []*gh.PullRequest) []string {
 	list := []string{}
 	for i := range prs {
 		pr := *prs[i]
 
-		title := *pr.Title
-		if signState {
-			title = fmt.Sprintf("%s %s", getStatePrefix(pr), pr.GetTitle())
-		}
+		title := fmt.Sprintf("%s %s", getStatePrefix(pr), pr.GetTitle())
 		list = append(list, title)
 	}
 
@@ -68,8 +66,8 @@ func prsToStringList(prs []*gh.PullRequest, signState bool) []string {
 
 func getStatePrefix(pr gh.PullRequest) string {
 	if !pr.GetMergedAt().IsZero() {
-		return "[MERGED]"
+		return pterm.Magenta("[M]")
 	}
 
-	return "[CLOSED]"
+	return pterm.Red("[C]")
 }
