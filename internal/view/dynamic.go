@@ -3,7 +3,6 @@ package view
 import (
 	"fmt"
 	"io"
-	"time"
 
 	"github.com/pkg/errors"
 	"github.com/pterm/pterm"
@@ -50,7 +49,6 @@ func (mtv *dynamicMultiView) Add(name string, valuesChan chan []string, errorCha
 }
 
 func (mtv *dynamicMultiView) Run() error {
-	startedAt := time.Now()
 	workingSpinners, err := startSpinnersWithPrinter(mtv.tasks, &mtv.multiPrinter)
 	if err != nil {
 		return err
@@ -59,7 +57,7 @@ func (mtv *dynamicMultiView) Run() error {
 	mtv.multiPrinter.Start()
 	for len(workingSpinners) > 0 {
 		for name, channels := range mtv.tasks {
-			if selectChannelsForSpinners(workingSpinners, name, channels, startedAt) {
+			if selectChannelsForSpinners(workingSpinners, name, channels) {
 				delete(workingSpinners, name)
 			}
 		}
@@ -69,28 +67,23 @@ func (mtv *dynamicMultiView) Run() error {
 	return nil
 }
 
-func selectChannelsForSpinners(workingSpinners map[string]*pterm.SpinnerPrinter, taskName string, channels taskChannels, startedAt time.Time) bool {
+func selectChannelsForSpinners(workingSpinners map[string]*pterm.SpinnerPrinter, taskName string, channels taskChannels) bool {
 	select {
 	case err, ok := <-channels.errorChan:
 		if ok {
-			workingSpinners[taskName].Fail(
-				err,
-				buildTimeSinceStart(startedAt, workingSpinners[taskName].TimerRoundingFactor),
-			)
+			workingSpinners[taskName].Fail(err)
 		}
 	case PRs, ok := <-channels.valuesChan:
 		if ok {
 			if len(PRs) == 0 {
 				workingSpinners[taskName].Warning(
 					fmt.Sprintf("skipping '%s' no user activity detected", taskName),
-					buildTimeSinceStart(startedAt, workingSpinners[taskName].TimerRoundingFactor),
 				)
 			} else {
 				text := buildPRsTreeString(
 					fmt.Sprintf(
-						"found %d PRs for repo '%s' %s",
+						"found %d PRs for repo '%s'",
 						len(PRs), taskName,
-						buildTimeSinceStart(startedAt, workingSpinners[taskName].TimerRoundingFactor),
 					), PRs,
 				)
 				workingSpinners[taskName].Success(text)
@@ -100,16 +93,6 @@ func selectChannelsForSpinners(workingSpinners map[string]*pterm.SpinnerPrinter,
 		return false
 	}
 	return true
-}
-
-func buildTimeSinceStart(startedAt time.Time, round time.Duration) string {
-	return pterm.Gray(
-		" (",
-		time.Since(startedAt).
-			Round(round).
-			String(),
-		")",
-	)
 }
 
 func buildPRsTreeString(rootText string, PRs []string) string {
