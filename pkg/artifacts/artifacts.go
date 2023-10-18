@@ -57,7 +57,7 @@ func prsToStringList(prs []*gh.PullRequest) []string {
 	for i := range prs {
 		pr := *prs[i]
 
-		title := fmt.Sprintf("%s %s", getStatePrefix(pr), pr.GetTitle())
+		title := fmt.Sprintf("%s (#%d) %s", getStatePrefix(pr), pr.GetNumber(), pr.GetTitle())
 		list = append(list, title)
 	}
 
