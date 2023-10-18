@@ -57,8 +57,8 @@ func TestGenUserArtifactsToFile(t *testing.T) {
 		require.NoError(t, err)
 
 		expectedPRs := []string{
-			fmt.Sprint(pterm.Red("[C]"), " test PR 1"),
-			fmt.Sprint(pterm.Magenta("[M]"), " test PR 2"),
+			fmt.Sprint(pterm.Red(""), " (#123) test PR 1"),
+			fmt.Sprint(pterm.Magenta("󰘭"), " (#124) test PR 2"),
 		}
 		require.ElementsMatch(t, expectedPRs, prs)
 
