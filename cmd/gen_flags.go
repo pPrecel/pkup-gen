@@ -41,7 +41,6 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 			Name:        "token",
 			Aliases:     []string{"t", "pta", "personalaccesstoken"},
 			Usage:       "personal access token",
-			Required:    true,
 			Destination: &opts.token,
 			Action: func(_ *cli.Context, token string) error {
 				if token == "" {

@@ -13,6 +13,7 @@ builds:
     ldflags:
       - -s
       - -w 
+      - -X main.pkupClientID={{.Env.PKUP_GEN_CLIENT_ID}}
       - -X main.version=v{{.Version}}
       - -X main.commit={{.Commit}}
       - -X main.date={{.CommitDate}}

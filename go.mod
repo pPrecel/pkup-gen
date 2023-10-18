@@ -3,6 +3,7 @@ module github.com/pPrecel/PKUP
 go 1.21
 
 require (
+	github.com/cli/oauth v1.0.1
 	github.com/google/go-github/v53 v53.1.0
 	github.com/pkg/errors v0.9.1
 	github.com/pterm/pterm v0.12.69

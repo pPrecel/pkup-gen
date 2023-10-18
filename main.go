@@ -16,6 +16,7 @@ var (
 	buildArch    = "local"
 	projectOwner = "pPrecel"
 	projectRepo  = "pkup-gen"
+	pkupClientID = ""
 )
 
 func main() {
@@ -29,6 +30,7 @@ func main() {
 		BuildArch:    buildArch,
 		ProjectOwner: projectOwner,
 		ProjectRepo:  projectRepo,
+		PkupClientID: pkupClientID,
 		Log:          log,
 	}
 

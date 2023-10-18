@@ -27,3 +27,4 @@ jobs:
         env:
           GITHUB_REF_NAME: ${{ env.GIT_REF }}
           GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
+          PKUP_GEN_CLIENT_ID: ${{ secrets.PKUP_GEN_CLIENT_ID }}

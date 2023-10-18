@@ -44,13 +44,17 @@ func NewGenCommand(opts *Options) *cli.Command {
 }
 
 func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
-	multiView := view.NewMultiTaskView(opts.Log, opts.ci)
-	log := opts.Log.WithWriter(multiView.NewWriter())
-
-	client, err := github.NewClient(ctx.Context, log, opts.token, opts.enterpriseURL)
+	client, err := github.NewClient(ctx.Context, opts.Log, github.ClientOpts{
+		Token:         opts.token,
+		EnterpriseURL: opts.enterpriseURL,
+		AppClientID:   opts.PkupClientID,
+	})
 	if err != nil {
 		return fmt.Errorf("create Github client error: %s", err.Error())
 	}
+
+	multiView := view.NewMultiTaskView(opts.Log, opts.ci)
+	log := opts.Log.WithWriter(multiView.NewWriter())
 
 	warnOnNewRelease(client, opts)
 
@@ -119,7 +123,7 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 func warnOnNewRelease(client github.Client, opts *genActionOpts) {
 	latestVersion, err := client.GetLatestReleaseOrZero(opts.ProjectOwner, opts.ProjectRepo)
 	if err != nil {
-		opts.Log.Warn("failed to check the latest available release", opts.Log.Args(
+		opts.Log.Trace("failed to check the latest available release", opts.Log.Args(
 			"error", err.Error(),
 		))
 		return

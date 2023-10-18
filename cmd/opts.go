@@ -15,6 +15,7 @@ type Options struct {
 	BuildArch    string
 	ProjectOwner string
 	ProjectRepo  string
+	PkupClientID string
 	Log          *pterm.Logger
 }
 
