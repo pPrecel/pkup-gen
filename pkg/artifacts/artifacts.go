@@ -65,9 +65,10 @@ func prsToStringList(prs []*gh.PullRequest) []string {
 }
 
 func getStatePrefix(pr gh.PullRequest) string {
+	// pull request - 
 	if !pr.GetMergedAt().IsZero() {
-		return pterm.Magenta("[M]")
+		return pterm.Magenta("󰘭")
 	}
 
-	return pterm.Red("[C]")
+	return pterm.Red("")
 }
