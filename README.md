@@ -59,39 +59,39 @@ pkup gen --token "<PAT_TOKEN>" --username "pPrecel" \
 |   ___/  |    <   |  |  |  | |   ___// _' |/ _ \ '_ \
 |  |      |  .  \  |  '--'  | |  |   | (_| |  __/ | | |
 | _|      |__|\__\  \______/  | _|    \__, |\___|_| |_|
-                                      |___/     v1.1.3
+                                      |___/     v1.2.0
 
 INFO  generating artifacts for the actual PKUP period
     ├ after: 2023-09-19 00:00:00
     └ before: 2023-10-18 23:59:59
- ✓  found 2 PRs for repo 'kyma-project/keda-manager'  (13s)
-      ├──[M] Add more release logs
-      └──[M] Implement module-config template
- ✓  found 7 PRs for repo 'kyma-project/warden'  (9s)
-      ├──[M] Add unit tests for the `certs` package
-      ├──[M] Refactor webhook secret strategy
-      ├──[M] Add possibility to export cover out file
-      ├──[M] Sec scanners config
-      ├──[C] Bugfixes 0.5
-      ├──[C] Warden module poc
-      └──[C] Warden module poc 2
- ✓  found 2 PRs for repo 'kyma-project/test-infra'  (1m51s)
-      ├──[M] Fix `warden-unit-test` job
-      └──[M] Add missing argument to the warden dind job
- ✓  found 11 PRs for repo 'kyma-project/serverless-manager'  (29s)
-      ├──[M] Reflect used presets in status
-      ├──[M] Fix function default preset
-      ├──[M] Get rid of setup
-      ├──[M] Remove unnecessary ifs from the `delete.go` file
-      ├──[M] Make loggers more consistent
-      ├──[M] Improve building flags mechanism
-      ├──[M] Improve optional dependencies state function
-      ├──[M] Apply linter suggestions
-      ├──[M] Rename the `stopWithError` func
-      ├──[M] Use requeueAfter secret are deleted
-      └──[M] Implement module-config template
- ✗  skipping 'kyma-project/kyma' no user activity detected (1m26s)
- ✗  skipping 'kyma-incubator/reconciler' no user activity detected (36s)
+ ✓  found 11 PRs for repo 'kyma-project/serverless-manager'
+      ├──󰘭 (#351) Reflect used presets in status
+      ├──󰘭 (#348) Fix function default preset
+      ├──󰘭 (#313) Get rid of setup
+      ├──󰘭 (#318) Remove unnecessary ifs from the `delete.go` file
+      ├──󰘭 (#317) Make loggers more consistent
+      ├──󰘭 (#312) Improve building flags mechanism
+      ├──󰘭 (#304) Improve optional dependencies state function
+      ├──󰘭 (#288) Apply linter suggestions
+      ├──󰘭 (#291) Rename the `stopWithError` func
+      ├──󰘭 (#287) Use requeueAfter secret are deleted
+      └──󰘭 (#244) Implement module-config template
+ ✓  found 2 PRs for repo 'kyma-project/keda-manager'
+      ├──󰘭 (#299) Add more release logs
+      └──󰘭 (#285) Implement module-config template
+ ✓  found 7 PRs for repo 'kyma-project/warden'
+      ├──󰘭 (#119) Add unit tests for the `certs` package
+      ├──󰘭 (#117) Refactor webhook secret strategy
+      ├──󰘭 (#118) Add possibility to export cover out file
+      ├──󰘭 (#113) Sec scanners config
+      ├── (#121) Bugfixes 0.5
+      ├── (#114) Warden module poc
+      └── (#115) Warden module poc 2
+ ✓  found 2 PRs for repo 'kyma-project/test-infra'
+      ├──󰘭 (#9046) Fix `warden-unit-test` job
+      └──󰘭 (#9035) Add missing argument to the warden dind job
+ ✗  skipping 'kyma-project/kyma' no user activity detected
+ ✗  skipping 'kyma-incubator/reconciler' no user activity detected
 INFO  all patch files saved to dir
     └ dir: /Users/pprecel/go/src/github.com/pPrecel/pkup-gen
 ```
@@ -111,3 +111,34 @@ ls --tree
 ## Personal Access Token
 
 The `pkup-gen` is using GitHub API for all HTTP operations. It does mean that to generate artifacts you have to pass a [PAT](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) using the `--token` flag. For public projects, the generated token does not need to have any permissions.
+
+If the token is not specified the `pkup-gen` will try to connect your GitHub account with the [pkup-gen](https://github.com/apps/pkup-gen) app using the GitHub device API. The generated token will be saved on your local machine so next time, until the token expires, you will be logged in. Example run without the `--token` flag specified:
+
+```text
+pkup gen --username "pPrecel" \
+    --repo "kyma-project/warden" --with-closed
+.______    __  ___  __    __  .______
+|   _  \  |  |/  / |  |  |  | |   _  \
+|  |_)  | |  '  /  |  |  |  | |  |_)  |__ _  ___ _ __
+|   ___/  |    <   |  |  |  | |   ___// _' |/ _ \ '_ \
+|  |      |  .  \  |  '--'  | |  |   | (_| |  __/ | | |
+| _|      |__|\__\  \______/  | _|    \__, |\___|_| |_|
+                                      |___/      v1.2.0
+
+WARN  no token provided - grand access via pkup-gen GitHub app
+    ├ copy code: A16E-C1UI
+    └ then open and paste the above code: https://github.com/login/device
+INFO  generating artifacts for the actual PKUP period
+    ├ after: 2023-09-19 00:00:00
+    └ before: 2023-10-18 23:59:59
+ ✓  found 7 PRs for repo 'kyma-project/warden'
+      ├──󰘭 (#119) Add unit tests for the `certs` package
+      ├──󰘭 (#117) Refactor webhook secret strategy
+      ├──󰘭 (#118) Add possibility to export cover out file
+      ├──󰘭 (#113) Sec scanners config
+      ├── (#121) Bugfixes 0.5
+      ├── (#114) Warden module poc
+      └── (#115) Warden module poc 2
+INFO  all patch files saved to dir
+    └ dir: /Users/pprecel/go/src/github.com/pPrecel/pkup-gen
+```
