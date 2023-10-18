@@ -1,10 +1,12 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
 	"github.com/pPrecel/PKUP/internal/logo"
+	"github.com/pPrecel/PKUP/internal/token"
 	"github.com/pPrecel/PKUP/internal/view"
 	"github.com/pPrecel/PKUP/pkg/artifacts"
 	"github.com/pPrecel/PKUP/pkg/github"
@@ -30,20 +32,40 @@ func NewGenCommand(opts *Options) *cli.Command {
 			"\t\t--repo <org2>/<repo2>",
 		Aliases: []string{"g", "generate", "get"},
 		Flags:   getGenFlags(actionsOpts),
-		Action: func(ctx *cli.Context) error {
+		Before: func(_ *cli.Context) error {
+			// print logo before any action
 			if !actionsOpts.ci {
-				// print logo before any action
 				fmt.Printf("%s\n\n", logo.Build(opts.BuildVersion))
 			}
+
+			// default
 			if err := actionsOpts.setDefaults(); err != nil {
 				return err
 			}
+
+			// validate
+			if actionsOpts.enterpriseURL != "" && actionsOpts.token == "" {
+				return errors.New("specify token when using enterprise url")
+			}
+
+			return nil
+		},
+		Action: func(ctx *cli.Context) error {
+
 			return genCommandAction(ctx, actionsOpts)
 		},
 	}
 }
 
 func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
+	if opts.token == "" {
+		var err error
+		opts.token, err = token.Get(opts.Log, opts.PkupClientID)
+		if err != nil {
+			return fmt.Errorf("failed to provide token: %s", err.Error())
+		}
+	}
+
 	client, err := github.NewClient(ctx.Context, opts.Log, github.ClientOpts{
 		Token:         opts.token,
 		EnterpriseURL: opts.enterpriseURL,
