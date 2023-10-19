@@ -22,7 +22,7 @@ func Get(logger *pterm.Logger, clientID string) (string, error) {
 	}
 
 	token, err := keyring.Get(serviceName, user.Username)
-	if err == nil {
+	if err == nil && isTokenValid(logger, token) {
 		return token, nil
 	}
 
@@ -46,7 +46,7 @@ func getGitHubDeviceToken(logger *pterm.Logger, clientID string) (string, error)
 		return "", err
 	}
 
-	logger.Warn("no token provided - grand access via pkup-gen GitHub app", logger.Args(
+	logger.Warn("no valid token provided - grand access via pkup-gen GitHub app", logger.Args(
 		"copy code", code.UserCode,
 		"then open and paste the above code", code.VerificationURI,
 	))
