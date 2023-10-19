@@ -10,7 +10,7 @@ import (
 func isTokenValid(logger *pterm.Logger, token string) bool {
 	// do request to the test github endpoint to validate if token is up-to-date
 	c := http.Client{}
-	req, err := http.NewRequest("GET", "https://api.github.com/repos/pPrecel/pkup-gen", nil)
+	req, err := http.NewRequest("GET", "https://api.github.com/octocat", nil)
 	if err != nil {
 		logger.Trace("can't call github", logger.Args(
 			"error", err,
