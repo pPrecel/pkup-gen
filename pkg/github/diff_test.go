@@ -2,7 +2,6 @@ package github
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"net/http/httptest"
 	"net/url"
@@ -25,9 +24,9 @@ func Test_gh_client_GetFileDiffForPRs(t *testing.T) {
 			client: fixTestClient(t, server),
 		}
 
-		diff, err := gh.GetFileDiffForPRs(testPullRequests, "pPrecel", "pkup-gen")
+		diff, err := gh.GetPRContentDiff(testPullRequests[0], "pPrecel", "pkup-gen")
 		require.NoError(t, err)
-		require.Equal(t, fmt.Sprintf("%s\n%s\n", testDiff, testDiff), diff)
+		require.Equal(t, testDiff, diff)
 	})
 }
 

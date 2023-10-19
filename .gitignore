@@ -3,5 +3,5 @@ tmp/
 .vscode/
 
 # development
-kyma-project_*
-kyma-incubator_*
+*.diff
+*.patch

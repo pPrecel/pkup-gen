@@ -17,25 +17,27 @@ import (
 	"k8s.io/utils/pointer"
 )
 
-func TestGenUserArtifactsToFile(t *testing.T) {
+func TestGenUserArtifactsToDir(t *testing.T) {
 	t.Run("generate diff", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		diff := "+ anything"
 		testPRs := []*gh.PullRequest{
 			{
-				Title:    pointer.String("test PR 1"),
-				Number:   pointer.Int(123),
-				ClosedAt: &gh.Timestamp{},
+				Title:          pointer.String("test PR 1"),
+				MergeCommitSHA: pointer.String("sha1"),
+				Number:         pointer.Int(123),
+				ClosedAt:       &gh.Timestamp{},
 			},
 			{
-				Title:    pointer.String("test PR 2"),
-				Number:   pointer.Int(124),
-				MergedAt: &gh.Timestamp{Time: time.Now()},
+				Title:          pointer.String("test PR 2"),
+				MergeCommitSHA: pointer.String("sha2"),
+				Number:         pointer.Int(124),
+				MergedAt:       &gh.Timestamp{Time: time.Now()},
 			},
 		}
 
 		clientMock := automock.NewClient(t)
-		clientMock.On("GetFileDiffForPRs", mock.Anything, "test-org", "test-repo").Return(diff, nil).Once()
+		clientMock.On("GetPRContentDiff", mock.Anything, "test-org", "test-repo").Return(diff, nil).Twice()
 		clientMock.On("ListUserPRsForRepo", github.Options{
 			Org:          "test-org",
 			Repo:         "test-repo",
@@ -44,7 +46,7 @@ func TestGenUserArtifactsToFile(t *testing.T) {
 			MergedAfter:  time.Time{},
 		}, mock.Anything).Return(testPRs, nil).Once()
 
-		prs, err := GenUserArtifactsToFile(clientMock, &GenerateOpts{
+		prs, err := GenUserArtifactsToDir(clientMock, Options{
 			Org:          "test-org",
 			Repo:         "test-repo",
 			Username:     "test-username",
@@ -57,16 +59,22 @@ func TestGenUserArtifactsToFile(t *testing.T) {
 		require.NoError(t, err)
 
 		expectedPRs := []string{
-			fmt.Sprint(pterm.Red(""), " (#123) test PR 1"),
-			fmt.Sprint(pterm.Magenta("󰘭"), " (#124) test PR 2"),
+			fmt.Sprint(" ", pterm.Red("[C]"), " (#123) test PR 1"),
+			fmt.Sprint(" ", pterm.Magenta("[M]"), " (#124) test PR 2"),
 		}
 		require.ElementsMatch(t, expectedPRs, prs)
 
-		expectedDiffFile := path.Join(tmpDir, "test-org_test-repo.patch")
+		expectedDiffFile := path.Join(tmpDir, "test-org_test-repo_sha1.diff")
 		require.FileExists(t, expectedDiffFile)
 		diffBody, err := os.ReadFile(expectedDiffFile)
 		require.NoError(t, err)
-		require.Equal(t, string(diffBody), diff)
+		require.Equal(t, diff, string(diffBody))
+
+		expectedDiffFile = path.Join(tmpDir, "test-org_test-repo_sha2.diff")
+		require.FileExists(t, expectedDiffFile)
+		diffBody, err = os.ReadFile(expectedDiffFile)
+		require.NoError(t, err)
+		require.Equal(t, diff, string(diffBody))
 	})
 	t.Run("list error", func(t *testing.T) {
 		clientMock := automock.NewClient(t)
@@ -78,7 +86,7 @@ func TestGenUserArtifactsToFile(t *testing.T) {
 			MergedAfter:  time.Time{},
 		}, mock.Anything).Return(nil, errors.New("test error")).Once()
 
-		prs, err := GenUserArtifactsToFile(clientMock, &GenerateOpts{
+		prs, err := GenUserArtifactsToDir(clientMock, Options{
 			Org:          "test-org",
 			Repo:         "test-repo",
 			Username:     "test-username",
@@ -93,16 +101,20 @@ func TestGenUserArtifactsToFile(t *testing.T) {
 	})
 	t.Run("diff error", func(t *testing.T) {
 		clientMock := automock.NewClient(t)
-		clientMock.On("GetFileDiffForPRs", mock.Anything, "test-org", "test-repo").Return("", errors.New("test error")).Once()
+		clientMock.On("GetPRContentDiff", mock.Anything, "test-org", "test-repo").Return("", errors.New("test error")).Once()
 		clientMock.On("ListUserPRsForRepo", github.Options{
 			Org:          "test-org",
 			Repo:         "test-repo",
 			Username:     "test-username",
 			MergedBefore: time.Time{},
 			MergedAfter:  time.Time{},
-		}, mock.Anything).Return([]*gh.PullRequest{}, nil).Once()
+		}, mock.Anything).Return([]*gh.PullRequest{
+			{
+				//empty PR
+			},
+		}, nil).Once()
 
-		prs, err := GenUserArtifactsToFile(clientMock, &GenerateOpts{
+		prs, err := GenUserArtifactsToDir(clientMock, Options{
 			Org:          "test-org",
 			Repo:         "test-repo",
 			Username:     "test-username",

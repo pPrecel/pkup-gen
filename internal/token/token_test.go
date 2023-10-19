@@ -140,12 +140,13 @@ func Test_tokenGetter_tokenFromKeyringFlow(t *testing.T) {
 		defer testServer.Close()
 
 		tg := tokenGetter{
-			client:         testServer.Client(),
-			logger:         pterm.DefaultLogger.WithWriter(io.Discard),
-			serviceName:    testServiceName,
-			username:       testUsername,
-			githubHostname: testServer.URL,
-			clientID:       "testID",
+			client:            testServer.Client(),
+			logger:            pterm.DefaultLogger.WithWriter(io.Discard),
+			serviceName:       testServiceName,
+			username:          testUsername,
+			githubHostname:    testServer.URL,
+			githubAPIHostname: testServer.URL,
+			clientID:          "testID",
 		}
 
 		token, err := tg.do()
@@ -180,12 +181,13 @@ func Test_tokenGetter_tokenFromKeyringFlow(t *testing.T) {
 		defer testServer.Close()
 
 		tg := tokenGetter{
-			client:         testServer.Client(),
-			logger:         pterm.DefaultLogger.WithWriter(io.Discard),
-			serviceName:    testServiceName,
-			username:       testUsername,
-			githubHostname: testServer.URL,
-			clientID:       "testID",
+			client:            testServer.Client(),
+			logger:            pterm.DefaultLogger.WithWriter(io.Discard),
+			serviceName:       testServiceName,
+			username:          testUsername,
+			githubHostname:    testServer.URL,
+			githubAPIHostname: testServer.URL,
+			clientID:          "testID",
 		}
 
 		token, err := tg.do()

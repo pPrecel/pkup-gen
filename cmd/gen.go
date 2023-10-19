@@ -98,7 +98,7 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 				defer close(errChan)
 				defer close(valChan)
 
-				config := artifacts.GenerateOpts{
+				config := artifacts.Options{
 					Org:          org,
 					Repo:         repo,
 					Username:     opts.username,
@@ -118,7 +118,7 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 					"mergedBefore", config.MergedBefore.String(),
 				))
 
-				prs, err := artifacts.GenUserArtifactsToFile(client, &config)
+				prs, err := artifacts.GenUserArtifactsToDir(client, config)
 
 				log.Debug("ending process for repo", log.Args(
 					"org", config.Org,

@@ -19,28 +19,30 @@ func Get(logger *pterm.Logger, clientID string) (string, error) {
 	}
 
 	tg := &tokenGetter{
-		client:         http.DefaultClient,
-		logger:         logger,
-		serviceName:    "pkup-gen",
-		username:       user.Username,
-		githubHostname: "https://github.com",
-		clientID:       clientID,
+		client:            http.DefaultClient,
+		logger:            logger,
+		serviceName:       "pkup-gen",
+		username:          user.Username,
+		githubHostname:    "https://github.com",
+		githubAPIHostname: "https://api.github.com",
+		clientID:          clientID,
 	}
 	return tg.do()
 }
 
 type tokenGetter struct {
-	client         *http.Client
-	logger         *pterm.Logger
-	serviceName    string
-	username       string
-	githubHostname string
-	clientID       string
+	client            *http.Client
+	logger            *pterm.Logger
+	serviceName       string
+	username          string
+	githubHostname    string
+	githubAPIHostname string
+	clientID          string
 }
 
 func (tg *tokenGetter) do() (string, error) {
 	token, err := keyring.Get(tg.serviceName, tg.username)
-	if err == nil && isTokenValid(tg.client, tg.logger, tg.githubHostname, token) {
+	if err == nil && isTokenValid(tg.client, tg.logger, tg.githubAPIHostname, token) {
 		return token, nil
 	}
 

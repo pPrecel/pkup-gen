@@ -10,7 +10,7 @@ import (
 	"github.com/pterm/pterm"
 )
 
-type GenerateOpts struct {
+type Options struct {
 	Org          string
 	Repo         string
 	Username     string
@@ -20,7 +20,7 @@ type GenerateOpts struct {
 	MergedBefore time.Time
 }
 
-func GenUserArtifactsToFile(client github.Client, opts *GenerateOpts) ([]string, error) {
+func GenUserArtifactsToDir(client github.Client, opts Options) ([]string, error) {
 	filters := []github.FilterFunc{github.FilterPRsByMergedAt}
 	if opts.WithClosed {
 		filters = append(filters, github.FilterPRsByClosedAt)
@@ -36,20 +36,40 @@ func GenUserArtifactsToFile(client github.Client, opts *GenerateOpts) ([]string,
 		return nil, fmt.Errorf("list users PRs in repo '%s/%s' error: %s", opts.Org, opts.Repo, err.Error())
 	}
 
-	diff, err := client.GetFileDiffForPRs(prs, opts.Org, opts.Repo)
+	err = savePRsDiffToFiles(client, prs, opts)
 	if err != nil {
-		return nil, fmt.Errorf("get diff for repo '%s/%s' error: %s", opts.Org, opts.Repo, err.Error())
-	}
-
-	if diff != "" {
-		filename := fmt.Sprintf("%s_%s.patch", opts.Org, opts.Repo)
-		err = file.Create(opts.Dir, filename, diff)
-		if err != nil {
-			return nil, fmt.Errorf("save file '%s' error: %s", filename, err.Error())
-		}
+		return nil, err
 	}
 
 	return prsToStringList(prs), nil
+}
+
+func savePRsDiffToFiles(client github.Client, prs []*gh.PullRequest, opts Options) error {
+	for i := range prs {
+		pr := prs[i]
+		diff, err := client.GetPRContentDiff(pr, opts.Org, opts.Repo)
+		if err != nil {
+			return fmt.Errorf("get diff for repo '%s/%s' error: %s", opts.Org, opts.Repo, err.Error())
+		}
+
+		if diff != "" {
+			filename := fmt.Sprintf("%s_%s_%s.diff", opts.Org, opts.Repo, cutSHA(pr.GetMergeCommitSHA()))
+			err = file.Create(opts.Dir, filename, diff)
+			if err != nil {
+				return fmt.Errorf("save file '%s' error: %s", filename, err.Error())
+			}
+		}
+	}
+
+	return nil
+}
+
+func cutSHA(fullSHA string) string {
+	if len(fullSHA) < 8 {
+		return fullSHA
+	}
+
+	return fullSHA[0:8]
 }
 
 func prsToStringList(prs []*gh.PullRequest) []string {
@@ -57,7 +77,7 @@ func prsToStringList(prs []*gh.PullRequest) []string {
 	for i := range prs {
 		pr := *prs[i]
 
-		title := fmt.Sprintf("%s (#%d) %s", getStatePrefix(pr), pr.GetNumber(), pr.GetTitle())
+		title := fmt.Sprintf(" %s (#%d) %s", getStatePrefix(pr), pr.GetNumber(), pr.GetTitle())
 		list = append(list, title)
 	}
 
@@ -67,8 +87,8 @@ func prsToStringList(prs []*gh.PullRequest) []string {
 func getStatePrefix(pr gh.PullRequest) string {
 	// pull request - 
 	if !pr.GetMergedAt().IsZero() {
-		return pterm.Magenta("󰘭")
+		return pterm.Magenta("[M]")
 	}
 
-	return pterm.Red("")
+	return pterm.Red("[C]")
 }
