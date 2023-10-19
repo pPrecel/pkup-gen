@@ -2,6 +2,7 @@ package token
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"os"
 	"os/user"
@@ -11,41 +12,61 @@ import (
 	"github.com/zalando/go-keyring"
 )
 
-const (
-	serviceName = "pkup-gen"
-)
-
 func Get(logger *pterm.Logger, clientID string) (string, error) {
 	user, err := user.Current()
 	if err != nil {
 		return "", err
 	}
 
-	token, err := keyring.Get(serviceName, user.Username)
-	if err == nil && isTokenValid(logger, token) {
+	tg := &tokenGetter{
+		client:         http.DefaultClient,
+		logger:         logger,
+		serviceName:    "pkup-gen",
+		username:       user.Username,
+		githubHostname: "https://github.com",
+		clientID:       clientID,
+	}
+	return tg.do()
+}
+
+type tokenGetter struct {
+	client         *http.Client
+	logger         *pterm.Logger
+	serviceName    string
+	username       string
+	githubHostname string
+	clientID       string
+}
+
+func (tg *tokenGetter) do() (string, error) {
+	token, err := keyring.Get(tg.serviceName, tg.username)
+	if err == nil && isTokenValid(tg.client, tg.logger, tg.githubHostname, token) {
 		return token, nil
 	}
 
-	logger.Trace("getting token from GitHub device")
-	token, err = getGitHubDeviceToken(logger, clientID)
+	tg.logger.Trace("getting token from GitHub device")
+	token, err = getGitHubDeviceToken(tg.client, tg.logger, tg.githubHostname, tg.clientID)
 	if err != nil {
 		return "", err
 	}
 
-	return token, keyring.Set(serviceName, user.Username, token)
+	return token, keyring.Set(tg.serviceName, tg.username, token)
 }
 
-func getGitHubDeviceToken(logger *pterm.Logger, clientID string) (string, error) {
+func getGitHubDeviceToken(httpClient *http.Client, logger *pterm.Logger, githubHostname, clientID string) (string, error) {
 	scopes := []string{""}
 	clientID = ensuresClientIDIfEmpty(clientID)
-	httpClient := http.DefaultClient
 	code, err := device.RequestCode(
-		httpClient, "https://github.com/login/device/code",
-		clientID, scopes)
+		httpClient,
+		fmt.Sprintf("%s/login/device/code", githubHostname),
+		clientID,
+		scopes,
+	)
 	if err != nil {
 		return "", err
 	}
 
+	logger.Trace("new code", logger.Args("code", code))
 	logger.Warn("no valid token provided - grand access via pkup-gen GitHub app", logger.Args(
 		"copy code", code.UserCode,
 		"then open and paste the above code", code.VerificationURI,
@@ -53,7 +74,7 @@ func getGitHubDeviceToken(logger *pterm.Logger, clientID string) (string, error)
 
 	accessToken, err := device.Wait(
 		context.TODO(), httpClient,
-		"https://github.com/login/oauth/access_token",
+		fmt.Sprintf("%s/login/oauth/access_token", githubHostname),
 		device.WaitOptions{
 			ClientID:   clientID,
 			DeviceCode: code,
