@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/pterm/pterm"
@@ -54,8 +55,12 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 			Name:        "dir",
 			Usage:       "destination of .patch files",
 			Aliases:     []string{"d"},
-			Destination: &opts.dir,
 			Action: func(_ *cli.Context, dir string) error {
+				dir, err := filepath.Abs(filepath.Clean(dir))
+				if err != nil {
+					return err
+				}
+
 				info, err := os.Stat(dir)
 				if err != nil {
 					return err
@@ -96,15 +101,20 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 			},
 		},
 		&cli.StringFlag{
-			Name:        "template-path",
-			Usage:       "full path to the docx template - go to project repo for more info",
-			Aliases:     []string{"tp"},
-			Destination: &opts.templatePath,
+			Name:    "template-path",
+			Usage:   "full path to the docx template - go to project repo for more info",
+			Aliases: []string{"tp"},
 			Action: func(_ *cli.Context, path string) error {
+				path, err := filepath.Abs(filepath.Clean(path))
+				if err != nil {
+					return err
+				}
+
 				if path == "" {
 					return fmt.Errorf("'%s' template path is empty", path)
 				}
 
+				opts.templatePath = path
 				return nil
 			},
 		},

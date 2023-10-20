@@ -2,6 +2,7 @@ package raport
 
 import (
 	"fmt"
+	"path/filepath"
 	"time"
 
 	gh "github.com/google/go-github/v53/github"
@@ -9,8 +10,7 @@ import (
 )
 
 const (
-	periodFormat        = "02.01.2006"
-	docxMonthYearFormat = "01.2006"
+	periodFormat = "02.01.2006"
 )
 
 type Result struct {
@@ -36,13 +36,9 @@ func Render(opts Options) error {
 	}
 
 	if opts.TemplatePath != "" {
-		outputFilename := fmt.Sprintf(
-			"RAPORT_%s.docx",
-			opts.PeriodTill.Format(docxMonthYearFormat),
-		)
 		return newFromTemplate(opts.TemplatePath).RenderToFile(
 			opts.OutputDir,
-			outputFilename,
+			filepath.Base(opts.TemplatePath),
 			values,
 		)
 	}
