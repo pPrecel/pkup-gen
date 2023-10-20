@@ -11,7 +11,7 @@ import (
 
 	"github.com/google/go-github/v53/github"
 	"github.com/stretchr/testify/require"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 const (
@@ -31,13 +31,13 @@ var (
 	}
 	testPullRequests = []*github.PullRequest{
 		{
-			MergeCommitSHA: pointer.String("9c3af6972080f7b8e20948bfd61f755cf3e74ab8"),
+			MergeCommitSHA: ptr.To[string]("9c3af6972080f7b8e20948bfd61f755cf3e74ab8"),
 			MergedAt: &github.Timestamp{
 				Time: testMergedBefore.AddDate(0, 0, -1),
 			},
 		},
 		{
-			MergeCommitSHA: pointer.String("9c3af6972080f7b8e20948bfd61f755cf3e74ab8"),
+			MergeCommitSHA: ptr.To[string]("9c3af6972080f7b8e20948bfd61f755cf3e74ab8"),
 			MergedAt: &github.Timestamp{
 				Time: testMergedBefore.AddDate(0, 0, -3),
 			},
@@ -46,18 +46,18 @@ var (
 	testCommits = []*github.RepositoryCommit{
 		{
 			Author: &github.User{
-				Login: pointer.String("anyone"),
+				Login: ptr.To[string]("anyone"),
 			},
 			Committer: &github.User{
-				Login: pointer.String("anyone"),
+				Login: ptr.To[string]("anyone"),
 			},
 		},
 		{
 			Author: &github.User{
-				Login: pointer.String("pPrecel"),
+				Login: ptr.To[string]("pPrecel"),
 			},
 			Committer: &github.User{
-				Login: pointer.String("pPrecel"),
+				Login: ptr.To[string]("pPrecel"),
 			},
 		},
 	}

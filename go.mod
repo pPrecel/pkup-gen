@@ -4,14 +4,14 @@ go 1.21
 
 require (
 	github.com/cli/oauth v1.0.1
-	github.com/google/go-github/v53 v53.1.0
+	github.com/google/go-github/v53 v53.2.0
 	github.com/nguyenthenguyen/docx v0.0.0-20230621112118-9c8e795a11db
 	github.com/pkg/errors v0.9.1
 	github.com/pterm/pterm v0.12.69
 	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli/v2 v2.25.7
 	github.com/zalando/go-keyring v0.2.3
-	k8s.io/utils v0.0.0-20230505201702-9f6742963106
+	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 )
 
 require (

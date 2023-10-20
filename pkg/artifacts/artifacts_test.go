@@ -12,7 +12,7 @@ import (
 	"github.com/pPrecel/PKUP/pkg/github/automock"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
-	"k8s.io/utils/pointer"
+	"k8s.io/utils/ptr"
 )
 
 func TestGenUserArtifactsToDir(t *testing.T) {
@@ -21,15 +21,15 @@ func TestGenUserArtifactsToDir(t *testing.T) {
 		diff := "+ anything"
 		testPRs := []*gh.PullRequest{
 			{
-				Title:          pointer.String("test PR 1"),
-				MergeCommitSHA: pointer.String("sha1"),
-				Number:         pointer.Int(123),
+				Title:          ptr.To[string]("test PR 1"),
+				MergeCommitSHA: ptr.To[string]("sha1"),
+				Number:         ptr.To[int](123),
 				ClosedAt:       &gh.Timestamp{},
 			},
 			{
-				Title:          pointer.String("test PR 2"),
-				MergeCommitSHA: pointer.String("sha2"),
-				Number:         pointer.Int(124),
+				Title:          ptr.To[string]("test PR 2"),
+				MergeCommitSHA: ptr.To[string]("sha2"),
+				Number:         ptr.To[int](124),
 				MergedAt:       &gh.Timestamp{Time: time.Now()},
 			},
 		}
