@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	version      = "local"
+	version      = "v1.2.0"
 	commit       = "local"
 	date         = "local"
 	buildOs      = "local"

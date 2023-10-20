@@ -17,7 +17,7 @@
 
 ---
 
-Simple and easy-to-use tool to generate PKUP (`Podwyższone Koszty Uzyskania Przychodu` - Polish law thing) artifacts, `.patch` files, based on merged Github PullRequests.
+Simple and easy-to-use tool to generate PKUP (`Podwyższone Koszty Uzyskania Przychodu` - Polish law thing) report (`.docx`) and artifacts (`.diff`).
 
 The `pkup-gen` collects all users' PullRequests merged between the 18th (23:59:59) of the actual month and the 19th (00:00:00) of the past one. To qualify PR, the user should be an author or committer of at least one commit from the PullRequest.
 
@@ -44,23 +44,48 @@ Visit the [releases page](https://github.com/pPrecel/pkup-gen/releases) to downl
 
 Example usage:
 
-![screen1](./docs/Screenshot%202023-10-19%20at%2000.14.36.png)
+![screen1](./docs/screenshot-1.png)
 
-output:
+output in the `report` dir:
 
 ```bash
-ls --tree
-
-.
-├── kyma-project_keda-manager.patch
-├── kyma-project_serverless-manager.patch
-└── kyma-project_warden.patch
+report
+├── JOHN_WICK.docx
+├── kyma-project_serverless-manager_0acc102b.diff
+├── kyma-project_serverless-manager_29e58618.diff
+├── kyma-project_serverless-manager_2c3f3c1a.diff
+├── kyma-project_serverless-manager_2ee48748.diff
+├── kyma-project_serverless-manager_b1919096.diff
+├── kyma-project_serverless-manager_b358fab3.diff
+├── kyma-project_serverless-manager_cd3621f4.diff
+├── kyma-project_serverless-manager_d3306d5d.diff
+├── kyma-project_serverless-manager_e6acdc66.diff
+├── kyma-project_serverless-manager_ea07c894.diff
+├── kyma-project_serverless-manager_fe35f71c.diff
+├── kyma-project_warden_05cf15a1.diff
+├── kyma-project_warden_0c730d41.diff
+├── kyma-project_warden_2ef15e2d.diff
+├── kyma-project_warden_5a5e192d.diff
+├── kyma-project_warden_9412db87.diff
+├── kyma-project_warden_96907148.diff
+└── kyma-project_warden_c12e1339.diff
 ```
 
-## Personal Access Token
+## report
 
-The `pkup-gen` is using GitHub API for all HTTP operations. It does mean that to generate artifacts you have to pass a [PAT](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens) using the `--token` flag. For public projects, the generated token does not need to have any permissions.
+By default the `pkup-gen` generates the `report.txt` files with all info needed to fill true report.
 
-If the token is not specified the `pkup-gen` will try to connect your GitHub account with the [pkup-gen](https://github.com/apps/pkup-gen) app using the GitHub device API. The generated token will be saved on your local machine so next time, until the token expires, you will be logged in. Example run without the `--token` flag specified:
+The `.docx` report template can be specified  using the `--template-path` flag. The `pkup-gen` will replace any repeat of the following key-words with the tru data:
 
-![screen2](./docs/Screenshot%202023-10-19%20at%2000.16.05.png)
+* `pkupGenPeriodFrom` - date of the first day for the actual period
+* `pkupGenPeriodTill` - date of the last day for the actual period
+* `pkupGenApprovalDate` - date of the last day of the period plus one day
+* `pkupGenResults` - list of all PullRequests if format <PR_TITLE>( DIFF_FILE_NAME )
+
+## Access Token
+
+The `pkup-gen` needs credentials to connect with the GitHub API. There are two possible ways to pass such credentials:
+
+* By default the `pkup-gen` will reach the [pkup-gen](https://github.com/apps/pkup-gen) app using the GitHub device API. The generated token will be saved on local machine so next time, until the token expires, user will be logged in. This flow is not working with the `--enterprise-url` flag.
+
+* The `--token` flag allows to pass a [PAT](https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens). For public projects, the generated token does not need to have any permissions.

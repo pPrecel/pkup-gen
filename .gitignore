@@ -3,4 +3,5 @@ tmp/
 .vscode/
 
 # development
-raport
+report
+templates

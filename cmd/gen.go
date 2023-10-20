@@ -12,7 +12,7 @@ import (
 	"github.com/pPrecel/PKUP/pkg/artifacts"
 	"github.com/pPrecel/PKUP/pkg/github"
 	"github.com/pPrecel/PKUP/pkg/period"
-	"github.com/pPrecel/PKUP/pkg/raport"
+	"github.com/pPrecel/PKUP/pkg/report"
 	"github.com/urfave/cli/v2"
 )
 
@@ -88,7 +88,7 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 		"before", mergedBefore.Local().Format(logTimeFormat),
 	))
 
-	raportResults := []raport.Result{}
+	reportResults := []report.Result{}
 	for org, repos := range opts.repos {
 		for i := range repos {
 			org := org
@@ -135,7 +135,7 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 				}
 
 				valChan <- prs
-				raportResults = append(raportResults, raport.Result{
+				reportResults = append(reportResults, report.Result{
 					Org:          org,
 					Repo:         repo,
 					PullRequests: prs,
@@ -146,12 +146,12 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 
 	multiView.Run()
 
-	err = raport.Render(raport.Options{
+	err = report.Render(report.Options{
 		OutputDir:    opts.dir,
 		TemplatePath: opts.templatePath,
 		PeriodFrom:   mergedAfter,
 		PeriodTill:   mergedBefore,
-		Results:      raportResults,
+		Results:      reportResults,
 	})
 	if err != nil {
 		return err

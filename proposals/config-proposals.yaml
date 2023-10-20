@@ -13,7 +13,7 @@ artifacts:
   ghEnterpriseURL: https://your.org.enterprise.com/
   repos:
   - ...
-raport:
+report:
   template: /path/to/template.docx
   gptToken: <TOKEN>
   employeeName: Filip Strózik
