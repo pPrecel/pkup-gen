@@ -5,3 +5,6 @@ tmp/
 # development
 *.diff
 *.patch
+*.txt
+*.docx
+*.dotx

@@ -27,6 +27,7 @@ type genActionOpts struct {
 	token         string
 	username      string
 	enterpriseURL string
+	templatePath  string
 	repos         map[string][]string
 	withClosed    bool
 	ci            bool

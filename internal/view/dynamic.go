@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 
+	gh "github.com/google/go-github/v53/github"
 	"github.com/pkg/errors"
 	"github.com/pterm/pterm"
 )
@@ -41,7 +42,7 @@ func (mtv *dynamicMultiView) NewWriter() io.Writer {
 	return mtv.multiPrinter.NewWriter()
 }
 
-func (mtv *dynamicMultiView) Add(name string, valuesChan chan []string, errorChan chan error) {
+func (mtv *dynamicMultiView) Add(name string, valuesChan chan []*gh.PullRequest, errorChan chan error) {
 	mtv.tasks[name] = taskChannels{
 		valuesChan: valuesChan,
 		errorChan:  errorChan,
@@ -83,8 +84,8 @@ func selectChannelsForSpinners(workingSpinners map[string]*pterm.SpinnerPrinter,
 				text := buildPRsTreeString(
 					fmt.Sprintf(
 						"found %d PRs for repo '%s'",
-						len(PRs), taskName,
-					), PRs,
+						len(PRs), taskName),
+					prsToStringList(PRs),
 				)
 				workingSpinners[taskName].Success(text)
 			}
@@ -127,4 +128,24 @@ func startSpinnersWithPrinter(tasks map[string]taskChannels, multi *pterm.MultiP
 	}
 
 	return spinners, nil
+}
+
+func prsToStringList(prs []*gh.PullRequest) []string {
+	list := []string{}
+	for i := range prs {
+		pr := *prs[i]
+
+		title := fmt.Sprintf(" %s (#%d) %s", getStatePrefix(pr), pr.GetNumber(), pr.GetTitle())
+		list = append(list, title)
+	}
+
+	return list
+}
+
+func getStatePrefix(pr gh.PullRequest) string {
+	if !pr.GetMergedAt().IsZero() {
+		return pterm.Magenta("[M]")
+	}
+
+	return pterm.Red("[C]")
 }

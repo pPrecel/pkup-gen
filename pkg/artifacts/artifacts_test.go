@@ -2,7 +2,6 @@ package artifacts
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path"
 	"testing"
@@ -11,7 +10,6 @@ import (
 	gh "github.com/google/go-github/v53/github"
 	"github.com/pPrecel/PKUP/pkg/github"
 	"github.com/pPrecel/PKUP/pkg/github/automock"
-	"github.com/pterm/pterm"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
 	"k8s.io/utils/pointer"
@@ -57,12 +55,7 @@ func TestGenUserArtifactsToDir(t *testing.T) {
 		})
 
 		require.NoError(t, err)
-
-		expectedPRs := []string{
-			fmt.Sprint(" ", pterm.Red("[C]"), " (#123) test PR 1"),
-			fmt.Sprint(" ", pterm.Magenta("[M]"), " (#124) test PR 2"),
-		}
-		require.ElementsMatch(t, expectedPRs, prs)
+		require.ElementsMatch(t, testPRs, prs)
 
 		expectedDiffFile := path.Join(tmpDir, "test-org_test-repo_sha1.diff")
 		require.FileExists(t, expectedDiffFile)

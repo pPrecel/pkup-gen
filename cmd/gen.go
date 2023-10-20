@@ -5,12 +5,14 @@ import (
 	"fmt"
 	"time"
 
+	gh "github.com/google/go-github/v53/github"
 	"github.com/pPrecel/PKUP/internal/logo"
 	"github.com/pPrecel/PKUP/internal/token"
 	"github.com/pPrecel/PKUP/internal/view"
 	"github.com/pPrecel/PKUP/pkg/artifacts"
 	"github.com/pPrecel/PKUP/pkg/github"
 	"github.com/pPrecel/PKUP/pkg/period"
+	"github.com/pPrecel/PKUP/pkg/raport"
 	"github.com/urfave/cli/v2"
 )
 
@@ -86,12 +88,13 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 		"before", mergedBefore.Local().Format(logTimeFormat),
 	))
 
+	raportResults := []raport.Result{}
 	for org, repos := range opts.repos {
 		for i := range repos {
 			org := org
 			repo := repos[i]
 
-			valChan := make(chan []string)
+			valChan := make(chan []*gh.PullRequest)
 			errChan := make(chan error)
 			multiView.Add(fmt.Sprintf("%s/%s", org, repo), valChan, errChan)
 			go func() {
@@ -118,25 +121,41 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 					"mergedBefore", config.MergedBefore.String(),
 				))
 
-				prs, err := artifacts.GenUserArtifactsToDir(client, config)
+				prs, processErr := artifacts.GenUserArtifactsToDir(client, config)
 
 				log.Debug("ending process for repo", log.Args(
 					"org", config.Org,
 					"repo", config.Repo,
 					"prs", prs,
-					"error", err,
+					"error", processErr,
 				))
-				if err != nil {
-					errChan <- err
+				if processErr != nil {
+					errChan <- processErr
 					return
 				}
 
 				valChan <- prs
+				raportResults = append(raportResults, raport.Result{
+					Org:          org,
+					Repo:         repo,
+					PullRequests: prs,
+				})
 			}()
 		}
 	}
 
 	multiView.Run()
+
+	err = raport.Render(raport.Options{
+		OutputDir:    opts.dir,
+		TemplatePath: opts.templatePath,
+		PeriodFrom:   mergedAfter,
+		PeriodTill:   mergedBefore,
+		Results:      raportResults,
+	})
+	if err != nil {
+		return err
+	}
 
 	opts.Log.Info("all patch files saved to dir", opts.Log.Args("dir", opts.dir))
 	return nil

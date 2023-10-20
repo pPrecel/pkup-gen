@@ -5,6 +5,7 @@ go 1.21
 require (
 	github.com/cli/oauth v1.0.1
 	github.com/google/go-github/v53 v53.1.0
+	github.com/nguyenthenguyen/docx v0.0.0-20230621112118-9c8e795a11db
 	github.com/pkg/errors v0.9.1
 	github.com/pterm/pterm v0.12.69
 	github.com/stretchr/testify v1.8.4

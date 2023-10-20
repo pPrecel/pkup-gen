@@ -95,6 +95,19 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 				return nil
 			},
 		},
+		&cli.StringFlag{
+			Name:        "template-path",
+			Usage:       "full path to the docx template - go to project repo for more info",
+			Aliases:     []string{"tp"},
+			Destination: &opts.templatePath,
+			Action: func(_ *cli.Context, path string) error {
+				if path == "" {
+					return fmt.Errorf("'%s' template path is empty", path)
+				}
+
+				return nil
+			},
+		},
 		&cli.BoolFlag{
 			Name:        "with-closed",
 			Usage:       "count closed (not merged) PullRequests",

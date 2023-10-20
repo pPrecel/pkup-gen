@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 
+	gh "github.com/google/go-github/v53/github"
 	"github.com/pterm/pterm"
 )
 
@@ -24,7 +25,7 @@ func newStatic(log *pterm.Logger) MultiTaskView {
 	}
 }
 
-func (sv *staticView) Add(name string, valuesChan chan []string, errorChan chan error) {
+func (sv *staticView) Add(name string, valuesChan chan []*gh.PullRequest, errorChan chan error) {
 	sv.tasks[name] = taskChannels{
 		valuesChan: valuesChan,
 		errorChan:  errorChan,
@@ -61,7 +62,7 @@ func selectChannelsForLogger(log *pterm.Logger, taskName string, channels taskCh
 				)
 			} else {
 				text := fmt.Sprintf("found %d PRs for repo '%s'", len(PRs), taskName)
-				log.Info(text, log.Args("prs", PRs))
+				log.Info(text, log.Args("prs", prsToStringList(PRs)))
 			}
 		}
 	default:

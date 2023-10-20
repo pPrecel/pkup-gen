@@ -3,17 +3,18 @@ package view
 import (
 	"io"
 
+	gh "github.com/google/go-github/v53/github"
 	"github.com/pterm/pterm"
 )
 
 type MultiTaskView interface {
 	Run() error
-	Add(string, chan []string, chan error)
+	Add(string, chan []*gh.PullRequest, chan error)
 	NewWriter() io.Writer
 }
 
 type taskChannels struct {
-	valuesChan chan []string
+	valuesChan chan []*gh.PullRequest
 	errorChan  chan error
 }
 
