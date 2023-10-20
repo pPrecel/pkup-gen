@@ -52,9 +52,9 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 			},
 		},
 		&cli.StringFlag{
-			Name:        "dir",
-			Usage:       "destination of .patch files",
-			Aliases:     []string{"d"},
+			Name:    "dir",
+			Usage:   "destination of .patch files",
+			Aliases: []string{"d"},
 			Action: func(_ *cli.Context, dir string) error {
 				dir, err := filepath.Abs(filepath.Clean(dir))
 				if err != nil {
