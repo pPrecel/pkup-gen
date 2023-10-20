@@ -1,6 +1,7 @@
 package token
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"math/rand"
@@ -25,6 +26,24 @@ const (
 		"access_token": "test-token"
 	}`
 )
+
+type storageMock struct {
+	getErr error
+	setErr error
+	token  string
+}
+
+func (ts storageMock) Get(_, _ string) (string, error) {
+	return ts.token, ts.getErr
+}
+
+func (ts storageMock) Set(_, _, _ string) error {
+	return ts.setErr
+}
+
+func (ts storageMock) Delete(_, _ string) error {
+	return nil
+}
 
 func Test_tokenGetter_newTokenFlow(t *testing.T) {
 	t.Run("create new token", func(t *testing.T) {
@@ -54,6 +73,9 @@ func Test_tokenGetter_newTokenFlow(t *testing.T) {
 			username:       testUsername,
 			githubHostname: testServer.URL,
 			clientID:       "testID",
+			tokenStorage: &storageMock{
+				getErr: errors.New("password not found"),
+			},
 		}
 
 		token, err := tg.do()
@@ -66,7 +88,7 @@ func Test_tokenGetter_newTokenFlow(t *testing.T) {
 		testUsername := randString()
 		defer keyring.Delete(testServiceName, testUsername)
 
-		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(404)
 		}))
 		defer testServer.Close()
@@ -78,6 +100,9 @@ func Test_tokenGetter_newTokenFlow(t *testing.T) {
 			username:       testUsername,
 			githubHostname: testServer.URL,
 			clientID:       "testID",
+			tokenStorage: &storageMock{
+				getErr: errors.New("password not found"),
+			},
 		}
 
 		token, err := tg.do()
@@ -111,6 +136,9 @@ func Test_tokenGetter_newTokenFlow(t *testing.T) {
 			username:       testUsername,
 			githubHostname: testServer.URL,
 			clientID:       "testID",
+			tokenStorage: &storageMock{
+				getErr: errors.New("password not found"),
+			},
 		}
 
 		token, err := tg.do()
@@ -147,6 +175,9 @@ func Test_tokenGetter_tokenFromKeyringFlow(t *testing.T) {
 			githubHostname:    testServer.URL,
 			githubAPIHostname: testServer.URL,
 			clientID:          "testID",
+			tokenStorage: &storageMock{
+				token: "test-token",
+			},
 		}
 
 		token, err := tg.do()
@@ -188,6 +219,9 @@ func Test_tokenGetter_tokenFromKeyringFlow(t *testing.T) {
 			githubHostname:    testServer.URL,
 			githubAPIHostname: testServer.URL,
 			clientID:          "testID",
+			tokenStorage: &storageMock{
+				token: "test-token",
+			},
 		}
 
 		token, err := tg.do()

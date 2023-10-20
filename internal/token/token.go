@@ -26,6 +26,7 @@ func Get(logger *pterm.Logger, clientID string) (string, error) {
 		githubHostname:    "https://github.com",
 		githubAPIHostname: "https://api.github.com",
 		clientID:          clientID,
+		tokenStorage:      &tokenStorage{},
 	}
 	return tg.do()
 }
@@ -38,10 +39,11 @@ type tokenGetter struct {
 	githubHostname    string
 	githubAPIHostname string
 	clientID          string
+	tokenStorage      keyring.Keyring
 }
 
 func (tg *tokenGetter) do() (string, error) {
-	token, err := keyring.Get(tg.serviceName, tg.username)
+	token, err := tg.tokenStorage.Get(tg.serviceName, tg.username)
 	if err == nil && isTokenValid(tg.client, tg.logger, tg.githubAPIHostname, token) {
 		return token, nil
 	}
@@ -52,7 +54,7 @@ func (tg *tokenGetter) do() (string, error) {
 		return "", err
 	}
 
-	return token, keyring.Set(tg.serviceName, tg.username, token)
+	return token, tg.tokenStorage.Set(tg.serviceName, tg.username, token)
 }
 
 func getGitHubDeviceToken(httpClient *http.Client, logger *pterm.Logger, githubHostname, clientID string) (string, error) {
