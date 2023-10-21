@@ -105,7 +105,7 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 					Org:          org,
 					Repo:         repo,
 					Username:     opts.username,
-					Dir:          opts.dir,
+					Dir:          opts.outputDir,
 					WithClosed:   opts.withClosed,
 					MergedAfter:  mergedAfter,
 					MergedBefore: mergedBefore,
@@ -147,7 +147,7 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 	multiView.Run()
 
 	err = report.Render(report.Options{
-		OutputDir:    opts.dir,
+		OutputDir:    opts.outputDir,
 		TemplatePath: opts.templatePath,
 		PeriodFrom:   mergedAfter,
 		PeriodTill:   mergedBefore,
@@ -157,7 +157,7 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 		return err
 	}
 
-	opts.Log.Info("all patch files saved to dir", opts.Log.Args("dir", opts.dir))
+	opts.Log.Info("all patch files saved to dir", opts.Log.Args("dir", opts.outputDir))
 	return nil
 }
 

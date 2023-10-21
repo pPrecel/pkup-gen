@@ -23,7 +23,7 @@ type genActionOpts struct {
 	*Options
 
 	perdiod       int
-	dir           string
+	outputDir     string
 	token         string
 	username      string
 	enterpriseURL string
@@ -41,12 +41,12 @@ type versionActionOpts struct {
 }
 
 func (opts *genActionOpts) setDefaults() error {
-	if opts.dir == "" {
+	if opts.outputDir == "" {
 		pwd, err := os.Getwd()
 		if err != nil {
 			return fmt.Errorf("failed to get pwd error: %s", err.Error())
 		}
-		opts.dir = pwd
+		opts.outputDir = pwd
 	}
 
 	return nil

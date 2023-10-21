@@ -11,9 +11,12 @@ import (
 	"github.com/urfave/cli/v2"
 )
 
+const (
+	loggingCategory = "logging config:"
+)
+
 func getGenFlags(opts *genActionOpts) []cli.Flag {
 	return []cli.Flag{
-		cli.HelpFlag,
 		&cli.StringSliceFlag{
 			Name:    "repo",
 			Usage:   "<org>/<repo> slice",
@@ -38,50 +41,14 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 				return nil
 			},
 		},
-		&cli.StringFlag{
-			Name:        "token",
-			Aliases:     []string{"t", "pta", "personalaccesstoken"},
-			Usage:       "personal access token",
-			Destination: &opts.token,
-			Action: func(_ *cli.Context, token string) error {
-				if token == "" {
-					return errors.New("'token' flag can't be empty")
-				}
-
-				return nil
-			},
-		},
-		&cli.StringFlag{
-			Name:    "dir",
-			Usage:   "destination of .patch files",
-			Aliases: []string{"d"},
-			Action: func(_ *cli.Context, dir string) error {
-				dir, err := filepath.Abs(filepath.Clean(dir))
-				if err != nil {
-					return err
-				}
-
-				info, err := os.Stat(dir)
-				if err != nil {
-					return err
-				}
-
-				if !info.IsDir() {
-					return fmt.Errorf("'%s' is not dir", dir)
-				}
-
-				opts.dir = dir
-				return nil
-			},
-		},
 		&cli.IntFlag{
 			Name:        "period",
 			Usage:       "pkup period to render from 0 to -n",
 			Aliases:     []string{"p"},
 			Destination: &opts.perdiod,
 			Action: func(_ *cli.Context, period int) error {
-				if period > 0 {
-					return fmt.Errorf("'%d' is not in range from 0 to -n", period)
+				if period > 1 {
+					return fmt.Errorf("'%d' is not in range from 1 to -n", period)
 				}
 
 				return nil
@@ -101,9 +68,45 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 			},
 		},
 		&cli.StringFlag{
-			Name:    "template-path",
-			Usage:   "full path to the docx template - go to project repo for more info",
-			Aliases: []string{"tp"},
+			Name:        "token",
+			Aliases:     []string{"t", "pat"},
+			Usage:       "personal access token",
+			Destination: &opts.token,
+			Action: func(_ *cli.Context, token string) error {
+				if token == "" {
+					return errors.New("'token' flag can't be empty")
+				}
+
+				return nil
+			},
+		},
+		&cli.StringFlag{
+			Name:    "output",
+			Usage:   "directory path where pkup-gen put generated files",
+			Aliases: []string{"o"},
+			Action: func(_ *cli.Context, dir string) error {
+				dir, err := filepath.Abs(filepath.Clean(dir))
+				if err != nil {
+					return err
+				}
+
+				info, err := os.Stat(dir)
+				if err != nil {
+					return err
+				}
+
+				if !info.IsDir() {
+					return fmt.Errorf("'%s' is not a dir", dir)
+				}
+
+				opts.outputDir = dir
+				return nil
+			},
+		},
+		&cli.StringFlag{
+			Name:    "template",
+			Usage:   "full path to the docx template - if not set program generates .txt data file",
+			Aliases: []string{"tmpl"},
 			Action: func(_ *cli.Context, path string) error {
 				path, err := filepath.Abs(filepath.Clean(path))
 				if err != nil {
@@ -125,9 +128,9 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 			Destination: &opts.withClosed,
 		},
 		&cli.BoolFlag{
-			Name:    "ci",
-			Usage:   "print output using standard log and JSON format",
-			Aliases: []string{"c"},
+			Name:     "ci",
+			Usage:    "print output using standard log and JSON format",
+			Category: loggingCategory,
 			Action: func(_ *cli.Context, b bool) error {
 				opts.ci = b
 				opts.Log = opts.Log.WithFormatter(pterm.LogFormatterJSON)
@@ -138,6 +141,7 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 			Name:               "v",
 			Usage:              "verbose log mode",
 			DisableDefaultText: true,
+			Category:           loggingCategory,
 			Action: func(_ *cli.Context, _ bool) error {
 				opts.Log.Level = pterm.LogLevelDebug
 				return nil
@@ -147,6 +151,7 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 			Name:               "vv",
 			Usage:              "trace log mode",
 			DisableDefaultText: true,
+			Category:           loggingCategory,
 			Action: func(_ *cli.Context, _ bool) error {
 				opts.Log.Level = pterm.LogLevelTrace
 				return nil
