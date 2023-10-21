@@ -46,6 +46,8 @@ Example usage:
 
 ![screen1](./assets/screenshot-main.png)
 
+For more go to the [examples](https://github.com/pPrecel/pkup-gen/tree/main/examples) dir.
+
 ## report
 
 By default the `pkup-gen` generates the `report.txt` files with all info needed to fill true report.
