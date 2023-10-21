@@ -2,6 +2,9 @@
 tmp/
 .vscode/
 
+# examples
+examples/with-template/report/
+
 # development
 reports/
 templates/

@@ -44,32 +44,7 @@ Visit the [releases page](https://github.com/pPrecel/pkup-gen/releases) to downl
 
 Example usage:
 
-![screen1](./docs/screenshot-1.png)
-
-output in the `report` dir:
-
-```bash
-report
-├── JOHN_WICK.docx
-├── kyma-project_serverless-manager_0acc102b.diff
-├── kyma-project_serverless-manager_29e58618.diff
-├── kyma-project_serverless-manager_2c3f3c1a.diff
-├── kyma-project_serverless-manager_2ee48748.diff
-├── kyma-project_serverless-manager_b1919096.diff
-├── kyma-project_serverless-manager_b358fab3.diff
-├── kyma-project_serverless-manager_cd3621f4.diff
-├── kyma-project_serverless-manager_d3306d5d.diff
-├── kyma-project_serverless-manager_e6acdc66.diff
-├── kyma-project_serverless-manager_ea07c894.diff
-├── kyma-project_serverless-manager_fe35f71c.diff
-├── kyma-project_warden_05cf15a1.diff
-├── kyma-project_warden_0c730d41.diff
-├── kyma-project_warden_2ef15e2d.diff
-├── kyma-project_warden_5a5e192d.diff
-├── kyma-project_warden_9412db87.diff
-├── kyma-project_warden_96907148.diff
-└── kyma-project_warden_c12e1339.diff
-```
+![screen1](./assets/screenshot-main.png)
 
 ## report
 
