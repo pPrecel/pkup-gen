@@ -27,7 +27,7 @@ func NewGenCommand(opts *Options) *cli.Command {
 
 	return &cli.Command{
 		Name:  "gen",
-		Usage: "Generates .patch files with all users merged content in the last PKUP period",
+		Usage: "Generates .diff files with all users merged content in the last PKUP period",
 		UsageText: "pkup gen --token <personal-access-token> \\\n" +
 			"\t\t--username <username> \\\n" +
 			"\t\t--repo <org1>/<repo1> \\\n" +
@@ -157,7 +157,7 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 		return err
 	}
 
-	opts.Log.Info("all patch files saved to dir", opts.Log.Args("dir", opts.outputDir))
+	opts.Log.Info("all files saved to dir", opts.Log.Args("dir", opts.outputDir))
 	return nil
 }
 
