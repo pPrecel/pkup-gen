@@ -3,12 +3,10 @@ package file
 import (
 	"fmt"
 	"os"
-
-	gh "github.com/google/go-github/v53/github"
 )
 
-func BuildDiffFilename(pr *gh.PullRequest, org, repo string) string {
-	return fmt.Sprintf("%s_%s_%s.diff", org, repo, cutSHA(pr.GetMergeCommitSHA()))
+func BuildDiffFilename(sha, org, repo string) string {
+	return fmt.Sprintf("%s_%s_%s.diff", org, repo, cutSHA(sha))
 }
 
 func Create(dir, filename, content string) error {

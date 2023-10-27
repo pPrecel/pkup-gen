@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	gh "github.com/google/go-github/v53/github"
+	go_github "github.com/google/go-github/v53/github"
 	"github.com/pPrecel/PKUP/pkg/github"
 	"github.com/pPrecel/PKUP/pkg/github/automock"
 	"github.com/stretchr/testify/mock"
@@ -19,43 +19,44 @@ func TestGenUserArtifactsToDir(t *testing.T) {
 	t.Run("generate diff", func(t *testing.T) {
 		tmpDir := t.TempDir()
 		diff := "+ anything"
-		testPRs := []*gh.PullRequest{
-			{
-				Title:          ptr.To[string]("test PR 1"),
-				MergeCommitSHA: ptr.To[string]("sha1"),
-				Number:         ptr.To[int](123),
-				ClosedAt:       &gh.Timestamp{},
-			},
-			{
-				Title:          ptr.To[string]("test PR 2"),
-				MergeCommitSHA: ptr.To[string]("sha2"),
-				Number:         ptr.To[int](124),
-				MergedAt:       &gh.Timestamp{Time: time.Now()},
+		testCommits := &github.CommitList{
+			Commits: []*go_github.RepositoryCommit{
+				{
+					SHA: ptr.To[string]("sha1"),
+					Commit: &go_github.Commit{
+						Message: ptr.To[string]("test PR 1 (#123)"),
+					},
+				},
+				{
+					SHA: ptr.To[string]("sha2"),
+					Commit: &go_github.Commit{
+						Message: ptr.To[string]("test PR 2 (#123)"),
+					},
+				},
 			},
 		}
 
 		clientMock := automock.NewClient(t)
-		clientMock.On("GetPRContentDiff", mock.Anything, "test-org", "test-repo").Return(diff, nil).Twice()
-		clientMock.On("ListUserPRsForRepo", github.Options{
-			Org:          "test-org",
-			Repo:         "test-repo",
-			Username:     "test-username",
-			MergedBefore: time.Time{},
-			MergedAfter:  time.Time{},
-		}, mock.Anything).Return(testPRs, nil).Once()
+		clientMock.On("GetCommitContentDiff", mock.Anything, "test-org", "test-repo").Return(diff, nil).Twice()
+		clientMock.On("ListRepoCommits", github.ListRepoCommitsOpts{
+			Org:     "test-org",
+			Repo:    "test-repo",
+			Authors: []string{"test-username"},
+			Since:   time.Time{},
+			Until:   time.Time{},
+		}, mock.Anything).Return(testCommits, nil).Once()
 
-		prs, err := GenUserArtifactsToDir(clientMock, Options{
-			Org:          "test-org",
-			Repo:         "test-repo",
-			Username:     "test-username",
-			WithClosed:   true,
-			MergedBefore: time.Time{},
-			MergedAfter:  time.Time{},
-			Dir:          tmpDir,
+		commitList, err := GenUserArtifactsToDir(clientMock, Options{
+			Org:     "test-org",
+			Repo:    "test-repo",
+			Authors: []string{"test-username"},
+			Since:   time.Time{},
+			Until:   time.Time{},
+			Dir:     tmpDir,
 		})
 
 		require.NoError(t, err)
-		require.ElementsMatch(t, testPRs, prs)
+		require.ElementsMatch(t, testCommits.Commits, commitList.Commits)
 
 		expectedDiffFile := path.Join(tmpDir, "test-org_test-repo_sha1.diff")
 		require.FileExists(t, expectedDiffFile)
@@ -71,22 +72,21 @@ func TestGenUserArtifactsToDir(t *testing.T) {
 	})
 	t.Run("list error", func(t *testing.T) {
 		clientMock := automock.NewClient(t)
-		clientMock.On("ListUserPRsForRepo", github.Options{
-			Org:          "test-org",
-			Repo:         "test-repo",
-			Username:     "test-username",
-			MergedBefore: time.Time{},
-			MergedAfter:  time.Time{},
+		clientMock.On("ListRepoCommits", github.ListRepoCommitsOpts{
+			Org:     "test-org",
+			Repo:    "test-repo",
+			Authors: []string{"test-username"},
+			Since:   time.Time{},
+			Until:   time.Time{},
 		}, mock.Anything).Return(nil, errors.New("test error")).Once()
 
 		prs, err := GenUserArtifactsToDir(clientMock, Options{
-			Org:          "test-org",
-			Repo:         "test-repo",
-			Username:     "test-username",
-			WithClosed:   true,
-			MergedBefore: time.Time{},
-			MergedAfter:  time.Time{},
-			Dir:          "/test/dir",
+			Org:     "test-org",
+			Repo:    "test-repo",
+			Authors: []string{"test-username"},
+			Since:   time.Time{},
+			Until:   time.Time{},
+			Dir:     "/test/dir",
 		})
 
 		require.Error(t, err)
@@ -94,27 +94,28 @@ func TestGenUserArtifactsToDir(t *testing.T) {
 	})
 	t.Run("diff error", func(t *testing.T) {
 		clientMock := automock.NewClient(t)
-		clientMock.On("GetPRContentDiff", mock.Anything, "test-org", "test-repo").Return("", errors.New("test error")).Once()
-		clientMock.On("ListUserPRsForRepo", github.Options{
-			Org:          "test-org",
-			Repo:         "test-repo",
-			Username:     "test-username",
-			MergedBefore: time.Time{},
-			MergedAfter:  time.Time{},
-		}, mock.Anything).Return([]*gh.PullRequest{
-			{
-				//empty PR
+		clientMock.On("GetCommitContentDiff", mock.Anything, "test-org", "test-repo").Return("", errors.New("test error")).Once()
+		clientMock.On("ListRepoCommits", github.ListRepoCommitsOpts{
+			Org:     "test-org",
+			Repo:    "test-repo",
+			Authors: []string{"test-username"},
+			Since:   time.Time{},
+			Until:   time.Time{},
+		}, mock.Anything).Return(&github.CommitList{
+			Commits: []*go_github.RepositoryCommit{
+				{
+					// empty commit
+				},
 			},
 		}, nil).Once()
 
 		prs, err := GenUserArtifactsToDir(clientMock, Options{
-			Org:          "test-org",
-			Repo:         "test-repo",
-			Username:     "test-username",
-			WithClosed:   true,
-			MergedBefore: time.Time{},
-			MergedAfter:  time.Time{},
-			Dir:          "/test/dir",
+			Org:     "test-org",
+			Repo:    "test-repo",
+			Authors: []string{"test-username"},
+			Since:   time.Time{},
+			Until:   time.Time{},
+			Dir:     "/test/dir",
 		})
 
 		require.Error(t, err)

@@ -3,8 +3,9 @@ package view
 import (
 	"fmt"
 	"io"
+	"strings"
 
-	gh "github.com/google/go-github/v53/github"
+	"github.com/pPrecel/PKUP/pkg/github"
 	"github.com/pkg/errors"
 	"github.com/pterm/pterm"
 )
@@ -42,7 +43,7 @@ func (mtv *dynamicMultiView) NewWriter() io.Writer {
 	return mtv.multiPrinter.NewWriter()
 }
 
-func (mtv *dynamicMultiView) Add(name string, valuesChan chan []*gh.PullRequest, errorChan chan error) {
+func (mtv *dynamicMultiView) Add(name string, valuesChan chan *github.CommitList, errorChan chan error) {
 	mtv.tasks[name] = taskChannels{
 		valuesChan: valuesChan,
 		errorChan:  errorChan,
@@ -74,18 +75,18 @@ func selectChannelsForSpinners(workingSpinners map[string]*pterm.SpinnerPrinter,
 		if ok {
 			workingSpinners[taskName].Fail(err)
 		}
-	case PRs, ok := <-channels.valuesChan:
+	case commitList, ok := <-channels.valuesChan:
 		if ok {
-			if len(PRs) == 0 {
+			if len(commitList.Commits) == 0 {
 				workingSpinners[taskName].Warning(
 					fmt.Sprintf("skipping '%s' no user activity detected", taskName),
 				)
 			} else {
-				text := buildPRsTreeString(
+				text := buildTreeString(
 					fmt.Sprintf(
-						"found %d PRs for repo '%s'",
-						len(PRs), taskName),
-					prsToStringList(PRs),
+						"found %d commits for repo '%s'",
+						len(commitList.Commits), taskName),
+					commitsToStringList(commitList),
 				)
 				workingSpinners[taskName].Success(text)
 			}
@@ -96,11 +97,11 @@ func selectChannelsForSpinners(workingSpinners map[string]*pterm.SpinnerPrinter,
 	return true
 }
 
-func buildPRsTreeString(rootText string, PRs []string) string {
+func buildTreeString(rootText string, values []string) string {
 	children := []pterm.TreeNode{}
-	for i := range PRs {
+	for i := range values {
 		children = append(children, pterm.TreeNode{
-			Text: PRs[i],
+			Text: values[i],
 		})
 	}
 
@@ -130,22 +131,14 @@ func startSpinnersWithPrinter(tasks map[string]taskChannels, multi *pterm.MultiP
 	return spinners, nil
 }
 
-func prsToStringList(prs []*gh.PullRequest) []string {
-	list := []string{}
-	for i := range prs {
-		pr := *prs[i]
+func commitsToStringList(list *github.CommitList) []string {
+	stringList := []string{}
+	for i := range list.Commits {
+		commit := list.Commits[i]
 
-		title := fmt.Sprintf(" %s (#%d) %s", getStatePrefix(pr), pr.GetNumber(), pr.GetTitle())
-		list = append(list, title)
+		line := strings.Split(commit.GetCommit().GetMessage(), "\n")[0]
+		stringList = append(stringList, line)
 	}
 
-	return list
-}
-
-func getStatePrefix(pr gh.PullRequest) string {
-	if !pr.GetMergedAt().IsZero() {
-		return pterm.Magenta("[M]")
-	}
-
-	return pterm.Red("[C]")
+	return stringList
 }

@@ -75,7 +75,7 @@ func Test_gh_client_ListUserPRsForRepo(t *testing.T) {
 			client: fixTestClient(t, server),
 		}
 
-		PRs, err := gh.ListUserPRsForRepo(Options{
+		PRs, err := gh.ListUserPRsForRepo(ListUserPRsOpts{
 			Org:          "pPrecel",
 			Repo:         "pkup-gen",
 			Username:     "pPrecel",

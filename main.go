@@ -37,7 +37,7 @@ func main() {
 	app := &cli.App{
 		Name:  "pkup",
 		Usage: "Easly generate .diff files with all users merged content in the last PKUP period",
-		UsageText: "pkup gen --token <personal-access-token> \\\n" +
+		UsageText: "pkup gen \\\n" +
 			"\t\t--username <username> \\\n" +
 			"\t\t--repo <org1>/<repo1> \\\n" +
 			"\t\t--repo <org2>/<repo2>",

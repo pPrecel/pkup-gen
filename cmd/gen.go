@@ -3,9 +3,7 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"time"
 
-	gh "github.com/google/go-github/v53/github"
 	"github.com/pPrecel/PKUP/internal/logo"
 	"github.com/pPrecel/PKUP/internal/token"
 	"github.com/pPrecel/PKUP/internal/view"
@@ -17,18 +15,21 @@ import (
 )
 
 const (
-	logTimeFormat = time.DateTime
+	logTimeFormat = "02.01.2006 15:04:05"
 )
 
 func NewGenCommand(opts *Options) *cli.Command {
+	since, until := period.GetLastPKUP()
 	actionsOpts := &genActionOpts{
 		Options: opts,
+		since:   *cli.NewTimestamp(since),
+		until:   *cli.NewTimestamp(until),
 	}
 
 	return &cli.Command{
-		Name:  "gen",
-		Usage: "Generates .diff files with all users merged content in the last PKUP period",
-		UsageText: "pkup gen --token <personal-access-token> \\\n" +
+		Name:        "gen",
+		Usage:       "Generates .diff and report files with all users merged content in the last PKUP period",
+		UsageText: "pkup gen \\\n" +
 			"\t\t--username <username> \\\n" +
 			"\t\t--repo <org1>/<repo1> \\\n" +
 			"\t\t--repo <org2>/<repo2>",
@@ -80,13 +81,19 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 	multiView := view.NewMultiTaskView(opts.Log, opts.ci)
 	log := opts.Log.WithWriter(multiView.NewWriter())
 
-	warnOnNewRelease(client, opts)
+	if !opts.ci {
+		warnOnNewRelease(client, opts)
+	}
 
-	mergedAfter, mergedBefore := period.GetLastPKUP(opts.perdiod)
 	log.Info("generating artifacts for the actual PKUP period", log.Args(
-		"after", mergedAfter.Local().Format(logTimeFormat),
-		"before", mergedBefore.Local().Format(logTimeFormat),
+		"since", opts.since.Value().Local().Format(logTimeFormat),
+		"until", opts.until.Value().Local().Format(logTimeFormat),
 	))
+
+	authors, err := client.GetUserSignatures(opts.username)
+	if err != nil {
+		return fmt.Errorf("failed to resolve '%s' user: %s", opts.username, err.Error())
+	}
 
 	reportResults := []report.Result{}
 	for org, repos := range opts.repos {
@@ -94,7 +101,7 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 			org := org
 			repo := repos[i]
 
-			valChan := make(chan []*gh.PullRequest)
+			valChan := make(chan *github.CommitList)
 			errChan := make(chan error)
 			multiView.Add(fmt.Sprintf("%s/%s", org, repo), valChan, errChan)
 			go func() {
@@ -102,31 +109,29 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 				defer close(valChan)
 
 				config := artifacts.Options{
-					Org:          org,
-					Repo:         repo,
-					Username:     opts.username,
-					Dir:          opts.outputDir,
-					WithClosed:   opts.withClosed,
-					MergedAfter:  mergedAfter,
-					MergedBefore: mergedBefore,
+					Org:     org,
+					Repo:    repo,
+					Authors: authors,
+					Dir:     opts.outputDir,
+					Since:   *opts.since.Value(),
+					Until:   *opts.until.Value(),
 				}
 
 				log.Debug("starting process for repo with config", log.Args(
 					"org", config.Org,
 					"repo", config.Repo,
-					"username", config.Username,
+					"authors", config.Authors,
 					"dir", config.Dir,
-					"withClosed", config.WithClosed,
-					"mergedAfter", config.MergedAfter.String(),
-					"mergedBefore", config.MergedBefore.String(),
+					"since", config.Since.String(),
+					"until", config.Until.String(),
 				))
 
-				prs, processErr := artifacts.GenUserArtifactsToDir(client, config)
+				commitList, processErr := artifacts.GenUserArtifactsToDir(client, config)
 
 				log.Debug("ending process for repo", log.Args(
 					"org", config.Org,
 					"repo", config.Repo,
-					"prs", prs,
+					"commits", len(commitList.Commits),
 					"error", processErr,
 				))
 				if processErr != nil {
@@ -134,11 +139,11 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 					return
 				}
 
-				valChan <- prs
+				valChan <- commitList
 				reportResults = append(reportResults, report.Result{
-					Org:          org,
-					Repo:         repo,
-					PullRequests: prs,
+					Org:        org,
+					Repo:       repo,
+					CommitList: commitList,
 				})
 			}()
 		}
@@ -149,8 +154,8 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 	err = report.Render(report.Options{
 		OutputDir:    opts.outputDir,
 		TemplatePath: opts.templatePath,
-		PeriodFrom:   mergedAfter,
-		PeriodTill:   mergedBefore,
+		PeriodFrom:   *opts.since.Value(),
+		PeriodTill:   *opts.until.Value(),
 		Results:      reportResults,
 	})
 	if err != nil {

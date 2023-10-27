@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/pterm/pterm"
+	"github.com/urfave/cli/v2"
 )
 
 type Options struct {
@@ -22,14 +23,14 @@ type Options struct {
 type genActionOpts struct {
 	*Options
 
-	perdiod       int
+	since         cli.Timestamp
+	until         cli.Timestamp
 	outputDir     string
 	token         string
 	username      string
 	enterpriseURL string
 	templatePath  string
 	repos         map[string][]string
-	withClosed    bool
 	ci            bool
 }
 

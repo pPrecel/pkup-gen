@@ -1,6 +1,7 @@
 .out/
 tmp/
 .vscode/
+.DS_Store
 
 # examples
 examples/with-template/report/

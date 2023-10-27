@@ -6,7 +6,9 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"time"
 
+	"github.com/pPrecel/PKUP/pkg/report"
 	"github.com/pterm/pterm"
 	"github.com/urfave/cli/v2"
 )
@@ -30,27 +32,27 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 		&cli.StringFlag{
 			Name:        "username",
 			Usage:       "GitHub user name",
-			Aliases:     []string{"u", "user"},
+			Aliases:     []string{"u"},
 			Required:    true,
 			Destination: &opts.username,
-			Action: func(_ *cli.Context, username string) error {
-				if username == "" {
-					return fmt.Errorf("username '%s' is empty", username)
-				}
-
+		},
+		&cli.TimestampFlag{
+			Name:     "since",
+			Usage:    "timestamp used to get commits and render report - foramt " + report.PeriodFormat,
+			Layout:   report.PeriodFormat,
+			Timezone: time.Local,
+			Action: func(_ *cli.Context, time *time.Time) error {
+				opts.since.SetTimestamp(*time)
 				return nil
 			},
 		},
-		&cli.IntFlag{
-			Name:        "period",
-			Usage:       "pkup period to render from 0 to -n",
-			Aliases:     []string{"p"},
-			Destination: &opts.perdiod,
-			Action: func(_ *cli.Context, period int) error {
-				if period > 1 {
-					return fmt.Errorf("'%d' is not in range from 1 to -n", period)
-				}
-
+		&cli.TimestampFlag{
+			Name:     "until",
+			Usage:    "timestamp used to get commits and render report - foramt " + report.PeriodFormat,
+			Layout:   report.PeriodFormat,
+			Timezone: time.Local,
+			Action: func(_ *cli.Context, t *time.Time) error {
+				opts.until.SetTimestamp(t.Add(time.Hour*24 - time.Second))
 				return nil
 			},
 		},
@@ -120,12 +122,6 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 				opts.templatePath = path
 				return nil
 			},
-		},
-		&cli.BoolFlag{
-			Name:        "with-closed",
-			Usage:       "count closed (not merged) PullRequests",
-			Aliases:     []string{"wc", "closed"},
-			Destination: &opts.withClosed,
 		},
 		&cli.BoolFlag{
 			Name:     "ci",

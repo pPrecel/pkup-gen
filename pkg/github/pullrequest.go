@@ -16,7 +16,7 @@ const (
 	maxPage = 15
 )
 
-type Options struct {
+type ListUserPRsOpts struct {
 	Org          string
 	Repo         string
 	Username     string
@@ -24,7 +24,8 @@ type Options struct {
 	MergedAfter  time.Time
 }
 
-func (gh *gh_client) ListUserPRsForRepo(opts Options, filters []FilterFunc) ([]*github.PullRequest, error) {
+// depricated
+func (gh *gh_client) ListUserPRsForRepo(opts ListUserPRsOpts, filters []FilterFunc) ([]*github.PullRequest, error) {
 	allUserPRs, err := gh.listLastPRsForRepo(opts, filters)
 	if err != nil {
 		return nil, err
@@ -48,7 +49,7 @@ func (gh *gh_client) ListUserPRsForRepo(opts Options, filters []FilterFunc) ([]*
 	return pullRequests, nil
 }
 
-func (gh *gh_client) listLastPRsForRepo(opts Options, filters []FilterFunc) ([]*github.PullRequest, error) {
+func (gh *gh_client) listLastPRsForRepo(opts ListUserPRsOpts, filters []FilterFunc) ([]*github.PullRequest, error) {
 	userPullRequests := []*github.PullRequest{}
 	page := 1
 
@@ -82,7 +83,7 @@ func (gh *gh_client) listLastPRsForRepo(opts Options, filters []FilterFunc) ([]*
 	return userPullRequests, nil
 }
 
-func (gh *gh_client) listUserPRs(prs []*github.PullRequest, opts Options) ([]*github.PullRequest, error) {
+func (gh *gh_client) listUserPRs(prs []*github.PullRequest, opts ListUserPRsOpts) ([]*github.PullRequest, error) {
 	userPRs := []*github.PullRequest{}
 	for i := range prs {
 		pr := prs[i]
