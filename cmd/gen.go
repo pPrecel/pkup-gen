@@ -157,6 +157,7 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 		PeriodFrom:   *opts.since.Value(),
 		PeriodTill:   *opts.until.Value(),
 		Results:      reportResults,
+		CustomValues: opts.reportFields,
 	})
 	if err != nil {
 		return err

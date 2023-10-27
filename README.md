@@ -52,12 +52,18 @@ For more go to the [examples](https://github.com/pPrecel/pkup-gen/tree/main/exam
 
 By default the `pkup-gen` generates the `report.txt` files with all info needed to fill true report.
 
-The `.docx` report template can be specified  using the `--template` flag. The `pkup-gen` will replace any repeat of the following key-words with the tru data:
+The `.docx` report template can be specified  using the `--template` flag. The `pkup-gen` will replace any repeat of the following key-words with the true data:
 
 * `pkupGenPeriodFrom` - date of the first day for the actual period
 * `pkupGenPeriodTill` - date of the last day for the actual period
 * `pkupGenApprovalDate` - date of the last day of the period plus one day
 * `pkupGenResults` - list of all PullRequests if format <PR_TITLE>( DIFF_FILE_NAME )
+
+The `pkup-gen` allows to add new formula to replace in the output `.docx` file. It can be achieved by adding flag `--report-field` like in the following example:
+
+```bash
+--report-field "pkupGenEmployeesName=John Wick"
+```
 
 ## Access Token
 

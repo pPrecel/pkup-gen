@@ -123,6 +123,15 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 				return nil
 			},
 		},
+		&cli.StringSliceFlag{
+			Name:  "report-field",
+			Usage: "custom field that will be replace in the output report - in format FIELD=VALUE",
+			Action: func(_ *cli.Context, fields []string) error {
+				reportFields, err := parseReportFields(fields)
+				opts.reportFields = reportFields
+				return err
+			},
+		},
 		&cli.BoolFlag{
 			Name:     "ci",
 			Usage:    "print output using standard log and JSON format",
@@ -154,6 +163,20 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 			},
 		},
 	}
+}
+
+func parseReportFields(args []string) (map[string]string, error) {
+	reportFields := map[string]string{}
+	for _, field := range args {
+		vals := strings.Split(field, "=")
+		if len(vals) != 2 {
+			return nil, fmt.Errorf("failed to parse '%s' report field", field)
+		}
+
+		reportFields[vals[0]] = vals[1]
+	}
+
+	return reportFields, nil
 }
 
 func parseReposMap(log *pterm.Logger, args []string) (map[string][]string, error) {

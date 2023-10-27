@@ -26,6 +26,7 @@ type Options struct {
 	PeriodFrom   time.Time
 	PeriodTill   time.Time
 	Results      []Result
+	CustomValues map[string]string
 }
 
 func Render(opts Options) error {
@@ -34,6 +35,7 @@ func Render(opts Options) error {
 		PeriodTill:   opts.PeriodTill.Format(PeriodFormat),
 		ApprovalDate: opts.PeriodTill.Add(time.Hour * 24).Format(PeriodFormat),
 		Result:       buildreportResult(opts),
+		CustomValues: opts.CustomValues,
 	}
 
 	if opts.TemplatePath != "" {

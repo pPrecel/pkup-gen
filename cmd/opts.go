@@ -31,6 +31,7 @@ type genActionOpts struct {
 	enterpriseURL string
 	templatePath  string
 	repos         map[string][]string
+	reportFields  map[string]string
 	ci            bool
 }
 
