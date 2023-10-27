@@ -19,7 +19,7 @@
 
 Simple and easy-to-use tool to generate PKUP (`Podwyższone Koszty Uzyskania Przychodu` - Polish law thing) report (`.docx`) and artifacts (`.diff`).
 
-The `pkup-gen` collects all users' PullRequests merged between the 18th (23:59:59) of the actual month and the 19th (00:00:00) of the past one. To qualify PR, the user should be an author or committer of at least one commit from the PullRequest.
+The `pkup-gen` collects all users' commits pushed between the 18th (23:59:59) of the actual month and the 19th (00:00:00) of the past one. To qualify commit, the user should be an author or co-author of it.
 
 ## Installation
 
@@ -52,7 +52,7 @@ For more go to the [examples](https://github.com/pPrecel/pkup-gen/tree/main/exam
 
 By default the `pkup-gen` generates the `report.txt` files with all info needed to fill true report.
 
-The `.docx` report template can be specified  using the `--template-path` flag. The `pkup-gen` will replace any repeat of the following key-words with the tru data:
+The `.docx` report template can be specified  using the `--template` flag. The `pkup-gen` will replace any repeat of the following key-words with the tru data:
 
 * `pkupGenPeriodFrom` - date of the first day for the actual period
 * `pkupGenPeriodTill` - date of the last day for the actual period

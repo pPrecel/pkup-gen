@@ -1,6 +1,6 @@
 # With Template
 
-In this example I would show you how easly generates `.docx` raport based on the self-prepared `.docx` template.
+In this example I would show you how easly generates `.docx` report based on the self-prepared `.docx` template.
 
 > Note: I assume you have all important knowledge from the [simple-flow](../simple-flow/README.md) example.
 
