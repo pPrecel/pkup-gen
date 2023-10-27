@@ -2,7 +2,7 @@ package period
 
 import "time"
 
-func GetLastPKUP() (time.Time, time.Time) {
+func GetCurrentPKUP() (time.Time, time.Time) {
 	actualMonth := time.Date(
 		time.Now().Year(),
 		time.Now().Month(),

@@ -14,10 +14,10 @@ type CommitList struct {
 }
 
 type ListRepoCommitsOpts struct {
+	Authors []string
 	Org     string
 	Repo    string
-	Authors []string
-	SHA     string
+	Branch  string
 	Since   time.Time
 	Until   time.Time
 }
@@ -45,7 +45,7 @@ func listCommitsPageFunc(ctx context.Context, client *go_github.Client, dest *Co
 	return func(page int) (bool, error) {
 		perPage := 100
 		commits, _, listErr := client.Repositories.ListCommits(ctx, opts.Org, opts.Repo, &go_github.CommitsListOptions{
-			SHA:   opts.SHA,
+			SHA:   opts.Branch,
 			Since: opts.Since,
 			Until: opts.Until,
 			ListOptions: go_github.ListOptions{
@@ -80,7 +80,9 @@ func getUserCommits(commits []*go_github.RepositoryCommit, opts ListRepoCommitsO
 }
 
 func isVerifiedCommitAuthor(commit *go_github.RepositoryCommit, author string) bool {
-	if commit.Commit.Verification.Verified != nil &&
+	if commit.Commit == nil ||
+		commit.Commit.Verification == nil ||
+		commit.Commit.Verification.Verified == nil ||
 		!*commit.Commit.Verification.Verified {
 		return false
 	}
@@ -98,8 +100,8 @@ func isVerifiedCommitAuthor(commit *go_github.RepositoryCommit, author string) b
 		// Reflect used presets in status (#351)
 		//
 		// Co-authored-by: Marcin Dobrochowski <anoip@o2.pl>"
-		if strings.HasPrefix(line, fmt.Sprintf("author %s", author)) ||
-			strings.HasPrefix(line, fmt.Sprintf("Co-authored-by: %s", author)) {
+		if strings.HasPrefix(line, fmt.Sprintf("author %s ", author)) ||
+			strings.HasPrefix(line, fmt.Sprintf("Co-authored-by: %s ", author)) {
 			return true
 		}
 	}

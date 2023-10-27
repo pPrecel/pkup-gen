@@ -19,7 +19,7 @@ const (
 )
 
 func NewGenCommand(opts *Options) *cli.Command {
-	since, until := period.GetLastPKUP()
+	since, until := period.GetCurrentPKUP()
 	actionsOpts := &genActionOpts{
 		Options: opts,
 		since:   *cli.NewTimestamp(since),
@@ -27,8 +27,8 @@ func NewGenCommand(opts *Options) *cli.Command {
 	}
 
 	return &cli.Command{
-		Name:        "gen",
-		Usage:       "Generates .diff and report files with all users merged content in the last PKUP period",
+		Name:  "gen",
+		Usage: "Generates .diff and report files with all users merged content in the last PKUP period",
 		UsageText: "pkup gen \\\n" +
 			"\t\t--username <username> \\\n" +
 			"\t\t--repo <org1>/<repo1> \\\n" +
