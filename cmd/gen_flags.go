@@ -134,11 +134,10 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 		},
 		&cli.BoolFlag{
 			Name:     "ci",
-			Usage:    "print output using standard log and JSON format",
+			Usage:    "print output using standard log",
 			Category: loggingCategory,
 			Action: func(_ *cli.Context, b bool) error {
 				opts.ci = b
-				opts.Log = opts.Log.WithFormatter(pterm.LogFormatterJSON)
 				return nil
 			},
 		},

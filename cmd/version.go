@@ -18,9 +18,8 @@ func NewVersionCommand(opts *Options) *cli.Command {
 		Usage:   "Shows tool version",
 		Flags: []cli.Flag{
 			&cli.BoolFlag{
-				Name:    "ci",
+				Name:    "json",
 				Usage:   "print output using standard log and JSON format",
-				Aliases: []string{"c"},
 				Action: func(_ *cli.Context, b bool) error {
 					actionOpts.ci = b
 					opts.Log = opts.Log.WithFormatter(pterm.LogFormatterJSON)
