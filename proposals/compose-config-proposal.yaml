@@ -1,0 +1,30 @@
+output: /dir #optional
+since: "18.09.2023" #optional
+until: "18.10.2023" #optional
+template: /path/to/template.docx #optional
+enterpriseURL: https://your.org.enterprise.com/ #optional
+orgs: #optional
+- kyma-project
+- kyma-incubator
+repos: #optional
+- kyma-project/kyma
+- kyma-project/serverless-manager
+- kyma-project/keda-manager
+- kyma-project/test-infra
+- kyma-incubator/reconciler
+users:
+- username: pPrecel
+  template: /path/to/template.docx #optional - overrides field from file root
+  repos: #optional - overrides field from file root
+  - ...
+  orgs: #optional - overrides field from file root
+  - ...
+  reportFields:
+  - pkupGenEmployeesName: John Wick
+  - pkupGenJobTitle: Assasin
+  - ...
+- username: anoipm
+  reportFields:
+  - pkupGenEmployeesName: John Wick
+  - pkupGenJobTitle: Assasin
+  - ...

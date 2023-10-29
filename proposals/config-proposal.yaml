@@ -1,4 +1,6 @@
 output: /dir
+since: "18.09.2023"
+until: "18.10.2023"
 artifacts:
 - ghUsername: pPrecel
   ghPersonalAccessToken: <TOKEN>
@@ -15,8 +17,7 @@ artifacts:
   - ...
 report:
   template: /path/to/template.docx
-  gptToken: <TOKEN>
-  employeeName: Filip Strózik
-  jobTitle: Developer
-  department: ...
-  managerName: ...
+  fields:
+  - pkupGenEmployeesName: John Wick
+  - pkupGenJobTitle: Assasin
+  - ...
