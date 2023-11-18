@@ -148,7 +148,7 @@ func isRepositoryCommitAuthor(commit *go_github.RepositoryCommit, author string)
 type pageListFunc func(page int) (nextPage bool, err error)
 
 func listForPages(fn pageListFunc) error {
-	page := 0
+	page := 1
 	nextPage := true
 	for nextPage {
 		var err error
