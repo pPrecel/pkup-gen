@@ -112,7 +112,7 @@ func Test_gh_client_ListRepoCommits(t *testing.T) {
 		server := fixTestServer(t, append(
 			append(testCommits, testWrongCommits...),
 			testVerifiedCommit...,
-		))
+		), nil)
 		defer server.Close()
 
 		gh := gh_client{

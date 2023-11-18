@@ -20,19 +20,25 @@ const (
 func getGenFlags(opts *genActionOpts) []cli.Flag {
 	return []cli.Flag{
 		&cli.StringSliceFlag{
-			Name:    "repo",
-			Usage:   "<org>/<repo> slice",
-			Aliases: []string{"r"},
+			Name:  "repo",
+			Usage: "<org>/<repo> slice - use this flag to look for user activity in specified repos",
 			Action: func(_ *cli.Context, args []string) error {
 				repos, err := parseReposMap(opts.Log, args)
 				opts.repos = repos
 				return err
 			},
 		},
+		&cli.StringSliceFlag{
+			Name:  "org",
+			Usage: "<org> slice - use this flag to look for user activity in all organization repos",
+			Action: func(ctx *cli.Context, s []string) error {
+				opts.orgs = s
+				return nil
+			},
+		},
 		&cli.StringFlag{
 			Name:        "username",
 			Usage:       "GitHub user name",
-			Aliases:     []string{"u"},
 			Required:    true,
 			Destination: &opts.username,
 		},
@@ -59,7 +65,6 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 		&cli.StringFlag{
 			Name:        "enterprise-url",
 			Usage:       "enterprise URL for calling other instances than github.com",
-			Aliases:     []string{"e", "enterprise"},
 			Destination: &opts.enterpriseURL,
 			Action: func(_ *cli.Context, url string) error {
 				if url == "" {
@@ -71,7 +76,6 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 		},
 		&cli.StringFlag{
 			Name:        "token",
-			Aliases:     []string{"t", "pat"},
 			Usage:       "personal access token",
 			Destination: &opts.token,
 			Action: func(_ *cli.Context, token string) error {
@@ -83,9 +87,8 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 			},
 		},
 		&cli.StringFlag{
-			Name:    "output",
-			Usage:   "directory path where pkup-gen put generated files",
-			Aliases: []string{"o"},
+			Name:  "output",
+			Usage: "directory path where pkup-gen put generated files",
 			Action: func(_ *cli.Context, dir string) error {
 				dir, err := filepath.Abs(filepath.Clean(dir))
 				if err != nil {

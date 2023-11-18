@@ -9,8 +9,9 @@ import (
 
 //go:generate mockery --name=Client --output=automock --outpkg=automock --case=underscore
 type Client interface {
-	GetCommitContentDiff(*github.RepositoryCommit, string, string) (string, error)
 	ListRepoCommits(ListRepoCommitsOpts) (*CommitList, error)
+	ListRepos(string) ([]string, error)
+	GetCommitContentDiff(*github.RepositoryCommit, string, string) (string, error)
 	GetLatestReleaseOrZero(string, string) (string, error)
 	GetUserSignatures(string) ([]string, error)
 }

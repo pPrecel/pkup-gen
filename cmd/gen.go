@@ -24,6 +24,7 @@ func NewGenCommand(opts *Options) *cli.Command {
 		Options: opts,
 		since:   *cli.NewTimestamp(since),
 		until:   *cli.NewTimestamp(until),
+		repos:   map[string][]string{},
 	}
 
 	return &cli.Command{
@@ -96,6 +97,15 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 	}
 
 	reportResults := []report.Result{}
+
+	for _, org := range opts.orgs {
+		log.Info("looking for repos in org", log.Args("org", org))
+		opts.repos[org], err = client.ListRepos(org)
+		if err != nil {
+			return fmt.Errorf("failed to list repos for org '%s': %s", org, err)
+		}
+	}
+
 	for org, repos := range opts.repos {
 		for i := range repos {
 			org := org
@@ -117,34 +127,18 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 					Until:   *opts.until.Value(),
 				}
 
-				log.Debug("starting process for repo with config", log.Args(
-					"org", config.Org,
-					"repo", config.Repo,
-					"authors", config.Authors,
-					"dir", config.Dir,
-					"since", config.Since.String(),
-					"until", config.Until.String(),
-				))
-
 				commitList, processErr := artifacts.GenUserArtifactsToDir(client, config)
-
-				log.Debug("ending process for repo", log.Args(
-					"org", config.Org,
-					"repo", config.Repo,
-					"commits", len(commitList.Commits),
-					"error", processErr,
-				))
 				if processErr != nil {
 					errChan <- processErr
 					return
 				}
 
-				valChan <- commitList
 				reportResults = append(reportResults, report.Result{
 					Org:        org,
 					Repo:       repo,
 					CommitList: commitList,
 				})
+				valChan <- commitList
 			}()
 		}
 	}

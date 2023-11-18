@@ -23,7 +23,7 @@ const (
 func Test_gh_client_GetFileDiffForPRs(t *testing.T) {
 	t.Run("get diff", func(t *testing.T) {
 		testDiff := "test diff"
-		server := fixTestServer(t, nil)
+		server := fixTestServer(t, nil, nil)
 		defer server.Close()
 
 		gh := gh_client{
@@ -55,7 +55,7 @@ func fixTestClient(t *testing.T, server *httptest.Server) *github.Client {
 	return client
 }
 
-func fixTestServer(t *testing.T, commits []*github.RepositoryCommit) *httptest.Server {
+func fixTestServer(t *testing.T, commits []*github.RepositoryCommit, repos []*github.Repository) *httptest.Server {
 	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// diff
 		if strings.Contains(r.URL.String(), "/commits/") {
@@ -66,6 +66,14 @@ func fixTestServer(t *testing.T, commits []*github.RepositoryCommit) *httptest.S
 		// commits
 		if strings.Contains(r.URL.String(), "/commits") {
 			bytes, err := json.Marshal(&commits)
+			require.NoError(t, err)
+			w.Write(bytes)
+			return
+		}
+
+		// repos
+		if strings.Contains(r.URL.String(), "/repos") {
+			bytes, err := json.Marshal(&repos)
 			require.NoError(t, err)
 			w.Write(bytes)
 			return
