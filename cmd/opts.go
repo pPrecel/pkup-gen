@@ -20,6 +20,15 @@ type Options struct {
 	Log          *pterm.Logger
 }
 
+type composeActionOpts struct {
+	*Options
+
+	config string
+	since  cli.Timestamp
+	until  cli.Timestamp
+	ci     bool
+}
+
 type genActionOpts struct {
 	*Options
 

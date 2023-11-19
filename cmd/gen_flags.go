@@ -31,7 +31,7 @@ func getGenFlags(opts *genActionOpts) []cli.Flag {
 		&cli.StringSliceFlag{
 			Name:  "org",
 			Usage: "<org> slice - use this flag to look for user activity in all organization repos",
-			Action: func(ctx *cli.Context, s []string) error {
+			Action: func(_ *cli.Context, s []string) error {
 				opts.orgs = s
 				return nil
 			},

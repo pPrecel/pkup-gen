@@ -1,0 +1,31 @@
+template: /path/to/template.docx #optional
+orgs: #optional
+- name: kyma-project
+  enterpriseURL: https://your.org.enterprise.com/ #optional
+  token: token...
+- name: kyma-incubator
+repos: #optional
+- name: kyma-project/kyma
+  enterpriseURL: https://your.org.enterprise.com/ #optional
+  token: token...
+- name: kyma-project/serverless-manager
+- name: kyma-project/keda-manager
+- name: kyma-project/test-infra
+- name: kyma-incubator/reconciler
+users:
+- username: pPrecel
+  enterpriseUsernames: #optional
+    https://your.org.enterprise.com/: goodemployee
+  outputDir: /dir
+  reportFields:
+  - pkupGenEmployeesName: John Wick
+  - pkupGenJobTitle: Assasin
+  - ...
+- username: anoipm
+  outputDir: /dir
+  enterpriseUsernames: #optional
+    https://your.org.enterprise.com/: goodemployee
+  reportFields:
+  - pkupGenEmployeesName: John Wick
+  - pkupGenJobTitle: Assasin
+  - ...

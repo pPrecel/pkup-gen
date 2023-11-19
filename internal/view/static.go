@@ -61,7 +61,7 @@ func selectChannelsForLogger(log *pterm.Logger, taskName string, channels taskCh
 					fmt.Sprintf("skipping '%s' no user activity detected", taskName),
 				)
 			} else {
-				text := fmt.Sprintf("found %d commits for repo '%s'", len(commitList.Commits), taskName)
+				text := fmt.Sprintf("found %d commits for '%s'", len(commitList.Commits), taskName)
 				log.Info(text, log.Args("commits", commitsToStringList(commitList)))
 			}
 		}

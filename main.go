@@ -47,6 +47,7 @@ func main() {
 		},
 		Commands: []*cli.Command{
 			cmd.NewGenCommand(opts),
+			cmd.NewComposeCommand(opts),
 			cmd.NewVersionCommand(opts),
 		},
 	}

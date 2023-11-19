@@ -38,9 +38,7 @@ func NewGenCommand(opts *Options) *cli.Command {
 		Flags:   getGenFlags(actionsOpts),
 		Before: func(_ *cli.Context) error {
 			// print logo before any action
-			if !actionsOpts.ci {
-				fmt.Printf("%s\n\n", logo.Build(opts.BuildVersion))
-			}
+			fmt.Printf("%s\n\n", logo.Build(opts.BuildVersion))
 
 			// default
 			if err := actionsOpts.setDefaults(); err != nil {

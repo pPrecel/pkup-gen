@@ -13,6 +13,10 @@ type CommitList struct {
 	Commits []*go_github.RepositoryCommit
 }
 
+func (cl *CommitList) Append(from *CommitList) {
+	cl.Commits = append(cl.Commits, from.Commits...)
+}
+
 type ListRepoCommitsOpts struct {
 	Authors []string
 	Org     string
@@ -44,7 +48,7 @@ func (gh *gh_client) ListRepoCommits(opts ListRepoCommitsOpts) (*CommitList, err
 func listCommitsPageFunc(ctx context.Context, client *go_github.Client, dest *CommitList, opts ListRepoCommitsOpts) pageListFunc {
 	return func(page int) (bool, error) {
 		perPage := 100
-		commits, _, listErr := client.Repositories.ListCommits(ctx, opts.Org, opts.Repo, &go_github.CommitsListOptions{
+		commits, resp, listErr := client.Repositories.ListCommits(ctx, opts.Org, opts.Repo, &go_github.CommitsListOptions{
 			SHA:   opts.Branch,
 			Since: opts.Since,
 			Until: opts.Until,
@@ -53,7 +57,8 @@ func listCommitsPageFunc(ctx context.Context, client *go_github.Client, dest *Co
 				PerPage: perPage,
 			},
 		})
-		if listErr != nil {
+		// return error only when statusCode is not 409 (repo is empty)
+		if listErr != nil && resp.StatusCode != 409 {
 			return false, listErr
 		}
 

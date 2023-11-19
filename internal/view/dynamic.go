@@ -84,7 +84,7 @@ func selectChannelsForSpinners(workingSpinners map[string]*pterm.SpinnerPrinter,
 			} else {
 				text := buildTreeString(
 					fmt.Sprintf(
-						"found %d commits for repo '%s'",
+						"found %d commits for '%s'",
 						len(commitList.Commits), taskName),
 					commitsToStringList(commitList),
 				)
