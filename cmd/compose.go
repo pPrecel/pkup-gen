@@ -21,11 +21,13 @@ func NewComposeCommand(opts *Options) *cli.Command {
 	}
 
 	return &cli.Command{
-		Name: "compose",
+		Name:      "compose",
+		Usage:     "Generates .diff and report files for many users and based on the .yaml config file",
+		UsageText: "pkup gen --config .pkupcompose.yaml",
 		Flags: []cli.Flag{
 			&cli.StringFlag{
 				Name:        "config",
-				DefaultText: ".pkupcompose.yaml",
+				Value:       ".pkupcompose.yaml",
 				Destination: &actionsOpts.config,
 				Action: func(_ *cli.Context, path string) error {
 					path, err := filepath.Abs(path)
@@ -77,6 +79,12 @@ func NewComposeCommand(opts *Options) *cli.Command {
 }
 
 func composeCommandAction(ctx *cli.Context, opts *composeActionOpts) error {
+	opts.Log.Info("generating artifacts for the PKUP period", opts.Log.Args(
+		"config", opts.config,
+		"since", opts.since.Value().Local().Format(logTimeFormat),
+		"until", opts.until.Value().Local().Format(logTimeFormat),
+	))
+
 	cfg, err := compose.ReadConfig(opts.config)
 	if err != nil {
 		return fmt.Errorf("failed to read config from path '%s': %s", opts.config, err.Error())

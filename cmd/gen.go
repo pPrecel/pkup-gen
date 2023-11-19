@@ -84,7 +84,7 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 		warnOnNewRelease(client, opts)
 	}
 
-	log.Info("generating artifacts for the actual PKUP period", log.Args(
+	log.Info("generating artifacts for the PKUP period", log.Args(
 		"since", opts.since.Value().Local().Format(logTimeFormat),
 		"until", opts.until.Value().Local().Format(logTimeFormat),
 	))
