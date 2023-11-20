@@ -79,7 +79,7 @@ func (c *compose) composeForUser(remoteClients map[string]github.Client, user Us
 		return nil, fmt.Errorf("failed to sanitize path '%s': %s", user.OutputDir, err.Error())
 	}
 
-	orgRepos, err := c.listOrgRepos(remoteClients, config.Orgs)
+	repos, err := c.listOrgRepos(remoteClients, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list repositories for orgs: %s", err.Error())
 	}
@@ -89,7 +89,6 @@ func (c *compose) composeForUser(remoteClients map[string]github.Client, user Us
 		return nil, fmt.Errorf("failed to list user signatures: %s", err.Error())
 	}
 
-	repos := append(config.Repos, orgRepos...)
 	wg := sync.WaitGroup{}
 	var errors error
 	commitList := github.CommitList{}
@@ -151,9 +150,9 @@ func (c *compose) composeForUser(remoteClients map[string]github.Client, user Us
 	return &commitList, nil
 }
 
-func (c *compose) listOrgRepos(remoteClients map[string]github.Client, orgs []Remote) ([]Remote, error) {
+func (c *compose) listOrgRepos(remoteClients map[string]github.Client, config *Config) ([]Remote, error) {
 	remotes := []Remote{}
-	for _, org := range orgs {
+	for _, org := range config.Orgs {
 		c := remoteClients[org.EnterpriseUrl]
 
 		repos, err := c.ListRepos(org.Name)
@@ -170,7 +169,7 @@ func (c *compose) listOrgRepos(remoteClients map[string]github.Client, orgs []Re
 		}
 	}
 
-	return remotes, nil
+	return append(config.Repos, remotes...), nil
 }
 
 func sanitizeOutputDir(dir string) (string, error) {
