@@ -6,7 +6,7 @@ import (
 	"github.com/pPrecel/PKUP/pkg/github"
 )
 
-func buildAuthors(remoteClients map[string]github.Client, user User) (map[string][]string, error) {
+func buildUrlAuthors(remoteClients map[string]github.Client, user *User) (map[string][]string, error) {
 	authorsMap := map[string][]string{}
 
 	// get signatures for opensource if not empty

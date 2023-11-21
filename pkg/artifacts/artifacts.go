@@ -29,7 +29,7 @@ func GenUserArtifactsToDir(client github.Client, opts Options) (*github.CommitLi
 		return nil, fmt.Errorf("list users commits in repo '%s/%s' error: %s", opts.Org, opts.Repo, err.Error())
 	}
 
-	err = saveDiffToFiles(client, commits, opts)
+	err = SaveDiffToFiles(client, commits, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -37,7 +37,7 @@ func GenUserArtifactsToDir(client github.Client, opts Options) (*github.CommitLi
 	return commits, nil
 }
 
-func saveDiffToFiles(client github.Client, commits *github.CommitList, opts Options) error {
+func SaveDiffToFiles(client github.Client, commits *github.CommitList, opts Options) error {
 	for i := range commits.Commits {
 		commit := commits.Commits[i]
 		diff, err := client.GetCommitContentDiff(commit, opts.Org, opts.Repo)

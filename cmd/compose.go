@@ -9,6 +9,7 @@ import (
 	"github.com/pPrecel/PKUP/pkg/compose"
 	"github.com/pPrecel/PKUP/pkg/period"
 	"github.com/pPrecel/PKUP/pkg/report"
+	"github.com/pterm/pterm"
 	"github.com/urfave/cli/v2"
 )
 
@@ -69,6 +70,9 @@ func NewComposeCommand(opts *Options) *cli.Command {
 		Before: func(_ *cli.Context) error {
 			// print logo before any action
 			fmt.Printf("%s\n\n", logo.Build(opts.BuildVersion))
+
+			// set log level to debug
+			opts.Log.Level = pterm.LogLevelDebug
 
 			return nil
 		},

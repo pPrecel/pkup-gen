@@ -17,6 +17,10 @@ import (
 	"github.com/pterm/pterm"
 )
 
+const (
+	logTimeFormat = "02.01.2006 15:04:05"
+)
+
 //go:generate mockery --name=Compose --output=automock --outpkg=automock --case=underscore
 type Compose interface {
 	ForConfig(*Config, ComposeOpts) error
@@ -45,12 +49,24 @@ type ComposeOpts struct {
 }
 
 func (c *compose) ForConfig(config *Config, opts ComposeOpts) error {
+	view := view.NewMultiTaskView(c.logger, opts.Ci)
+	viewLogger := c.logger.WithWriter(view.NewWriter())
+
 	remoteClients, err := buildClients(c.ctx, c.logger, config, c.buildClient)
 	if err != nil {
 		return err
 	}
 
-	view := view.NewMultiTaskView(c.logger, opts.Ci)
+	var repoCommits []*repoCommits
+	var listErr error
+	wg := sync.WaitGroup{}
+	wg.Add(1)
+	go func() {
+		viewLogger.Debug("listing all commits")
+		repoCommits, listErr = c.listAllCommits(remoteClients, config, &opts)
+		viewLogger.Debug("found commits for repos", viewLogger.Args("repos count", len(repoCommits)))
+		wg.Done()
+	}()
 
 	for i := range config.Users {
 		user := config.Users[i]
@@ -60,7 +76,13 @@ func (c *compose) ForConfig(config *Config, opts ComposeOpts) error {
 		view.Add(user.Username, valChan, errChan)
 
 		go func() {
-			commitList, err := c.composeForUser(remoteClients, user, config, opts)
+			wg.Wait()
+			if listErr != nil {
+				errChan <- listErr
+			}
+
+			viewLogger.Debug("compose for user", viewLogger.Args("user", user.Username))
+			commitList, err := c.composeForUser(remoteClients, repoCommits, &user, config, &opts)
 			if err != nil {
 				errChan <- err
 				return
@@ -73,18 +95,13 @@ func (c *compose) ForConfig(config *Config, opts ComposeOpts) error {
 	return view.Run()
 }
 
-func (c *compose) composeForUser(remoteClients map[string]github.Client, user User, config *Config, opts ComposeOpts) (*github.CommitList, error) {
+func (c *compose) composeForUser(remoteClients map[string]github.Client, repoCommits []*repoCommits, user *User, config *Config, opts *ComposeOpts) (*github.CommitList, error) {
 	outputDir, err := sanitizeOutputDir(user.OutputDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sanitize path '%s': %s", user.OutputDir, err.Error())
 	}
 
-	repos, err := c.listOrgRepos(remoteClients, config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list repositories for orgs: %s", err.Error())
-	}
-
-	authorsMap, err := buildAuthors(remoteClients, user)
+	urlAuthors, err := buildUrlAuthors(remoteClients, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list user signatures: %s", err.Error())
 	}
@@ -93,31 +110,32 @@ func (c *compose) composeForUser(remoteClients map[string]github.Client, user Us
 	var errors error
 	commitList := github.CommitList{}
 	results := []report.Result{}
-	for i := range repos {
-		repo := repos[i]
+	for i := range repoCommits {
+		repo := repoCommits[i]
 		wg.Add(1)
 		go func() {
-			orgName, repoName := splitRemoteName(repo.Name)
-			commits, genErr := artifacts.GenUserArtifactsToDir(remoteClients[repo.EnterpriseUrl], artifacts.Options{
-				Org:     orgName,
-				Repo:    repoName,
-				Authors: authorsMap[repo.EnterpriseUrl],
+			userCommits := github.CommitList{
+				Commits: github.GetUserCommits(repo.commits.Commits, urlAuthors[repo.enterpriseUrl]),
+			}
+
+			saveErr := artifacts.SaveDiffToFiles(remoteClients[repo.enterpriseUrl], &userCommits, artifacts.Options{
+				Org:     repo.org,
+				Repo:    repo.repo,
+				Authors: urlAuthors[repo.enterpriseUrl],
 				Dir:     outputDir,
 				Since:   opts.Since,
 				Until:   opts.Until,
 			})
-			if genErr != nil {
+			if saveErr != nil {
 				errors = multierror.Append(errors, fmt.Errorf(
-					"failed to generate artifacts for repo '%s': %s", repo.Name, genErr.Error(),
+					"failed to generate artifacts for repo '%s': %s", repo.repo, saveErr.Error(),
 				))
-			}
-
-			if commits != nil {
-				commitList.Append(commits)
+			} else {
+				commitList.Append(&userCommits)
 				results = append(results, report.Result{
-					Org:        orgName,
-					Repo:       repoName,
-					CommitList: commits,
+					Org:        repo.org,
+					Repo:       repo.repo,
+					CommitList: &userCommits,
 				})
 			}
 
@@ -148,6 +166,55 @@ func (c *compose) composeForUser(remoteClients map[string]github.Client, user Us
 	}
 
 	return &commitList, nil
+}
+
+type repoCommits struct {
+	org           string
+	repo          string
+	enterpriseUrl string
+	commits       *github.CommitList
+}
+
+func (c *compose) listAllCommits(remoteClients map[string]github.Client, config *Config, opts *ComposeOpts) ([]*repoCommits, error) {
+	repos, err := c.listOrgRepos(remoteClients, config)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list repositories for orgs: %s", err.Error())
+	}
+
+	wg := sync.WaitGroup{}
+	allRepoCommits := make([]*repoCommits, len(repos))
+	for i, r := range repos {
+		iter := i
+		repo := r
+
+		wg.Add(1)
+		go func() {
+			orgName, repoName := splitRemoteName(repo.Name)
+			client := remoteClients[repo.EnterpriseUrl]
+			c.logger.Debug("list commits for repo", c.logger.Args("org", orgName, "repo", repoName))
+			commitList, listErr := client.ListRepoCommits(github.ListRepoCommitsOpts{
+				Org:   orgName,
+				Repo:  repoName,
+				Since: opts.Since,
+				Until: opts.Until,
+			})
+			if listErr != nil {
+				multierror.Append(err, listErr)
+			}
+
+			c.logger.Debug("found commits", c.logger.Args("org", orgName, "repo", repoName, "count", len(commitList.Commits)))
+			allRepoCommits[iter] = &repoCommits{
+				org:           orgName,
+				repo:          repoName,
+				enterpriseUrl: repo.EnterpriseUrl,
+				commits:       commitList,
+			}
+			wg.Done()
+		}()
+	}
+
+	wg.Wait()
+	return allRepoCommits, err
 }
 
 func (c *compose) listOrgRepos(remoteClients map[string]github.Client, config *Config) ([]Remote, error) {

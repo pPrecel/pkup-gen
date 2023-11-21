@@ -38,11 +38,31 @@ func (gh *gh_client) ListRepoCommits(opts ListRepoCommitsOpts) (*CommitList, err
 	}
 
 	// filter out not user commits
-	commits.Commits = getUserCommits(commits.Commits, opts)
+	if len(opts.Authors) > 0 {
+		commits.Commits = GetUserCommits(commits.Commits, opts.Authors)
+	}
 
 	// client.Repositories.GetCommit(ctx, org, repo, "sha", &go_github.ListOptions{} )
 
 	return commits, nil
+}
+
+func GetUserCommits(commits []*go_github.RepositoryCommit, authors []string) []*go_github.RepositoryCommit {
+	userCommits := []*go_github.RepositoryCommit{}
+
+	for _, commit := range commits {
+		for _, author := range authors {
+			if isVerifiedCommitAuthor(commit, author) ||
+				isRepositoryCommitAuthor(commit, author) ||
+				isCommitAuthor(commit.Commit, author) {
+
+				userCommits = append(userCommits, commit)
+				break
+			}
+		}
+	}
+
+	return userCommits
 }
 
 func listCommitsPageFunc(ctx context.Context, client *go_github.Client, dest *CommitList, opts ListRepoCommitsOpts) pageListFunc {
@@ -65,23 +85,6 @@ func listCommitsPageFunc(ctx context.Context, client *go_github.Client, dest *Co
 		dest.Commits = append(dest.Commits, commits...)
 		return len(commits) == perPage, nil
 	}
-}
-
-func getUserCommits(commits []*go_github.RepositoryCommit, opts ListRepoCommitsOpts) []*go_github.RepositoryCommit {
-	userCommits := []*go_github.RepositoryCommit{}
-	for _, commit := range commits {
-		for _, author := range opts.Authors {
-			if isVerifiedCommitAuthor(commit, author) ||
-				isRepositoryCommitAuthor(commit, author) ||
-				isCommitAuthor(commit.Commit, author) {
-
-				userCommits = append(userCommits, commit)
-				break
-			}
-		}
-	}
-
-	return userCommits
 }
 
 func isVerifiedCommitAuthor(commit *go_github.RepositoryCommit, author string) bool {
