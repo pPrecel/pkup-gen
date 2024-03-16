@@ -11,6 +11,7 @@ import (
 type Client interface {
 	ListRepoCommits(ListRepoCommitsOpts) (*CommitList, error)
 	ListRepos(string) ([]string, error)
+	ListRepoBranches(string, string) (*BranchList, error)
 	GetCommitContentDiff(*github.RepositoryCommit, string, string) (string, error)
 	GetLatestReleaseOrZero(string, string) (string, error)
 	GetUserSignatures(string) ([]string, error)

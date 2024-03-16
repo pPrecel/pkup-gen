@@ -18,12 +18,13 @@ func (cl *CommitList) Append(from *CommitList) {
 }
 
 type ListRepoCommitsOpts struct {
-	Authors []string
-	Org     string
-	Repo    string
-	Branch  string
-	Since   time.Time
-	Until   time.Time
+	Org        string
+	Repo       string
+	Authors    []string
+	Branches   []string
+	UniqueOnly bool
+	Since      time.Time
+	Until      time.Time
 }
 
 func (gh *gh_client) ListRepoCommits(opts ListRepoCommitsOpts) (*CommitList, error) {
@@ -31,10 +32,23 @@ func (gh *gh_client) ListRepoCommits(opts ListRepoCommitsOpts) (*CommitList, err
 		Commits: []*go_github.RepositoryCommit{},
 	}
 
-	// get all repo commits in given period
-	err := listForPages(listCommitsPageFunc(gh.ctx, gh.client, commits, opts))
-	if err != nil {
-		return nil, fmt.Errorf("failed to list commits for repo '%s/%s': %s", opts.Org, opts.Repo, err.Error())
+	// default branches to HEAD if empty
+	if len(opts.Branches) == 0 {
+		opts.Branches = []string{""}
+	}
+
+	for _, branch := range opts.Branches {
+		// get all repo commits in given period
+		err := listForPages(listCommitsPageFunc(gh.ctx, gh.client, commits, listForPageOpts{
+			org:    opts.Org,
+			repo:   opts.Repo,
+			branch: branch,
+			since:  opts.Since,
+			until:  opts.Until,
+		}))
+		if err != nil {
+			return nil, fmt.Errorf("failed to list commits for repo '%s/%s': %s", opts.Org, opts.Repo, err.Error())
+		}
 	}
 
 	// filter out not user commits
@@ -42,7 +56,10 @@ func (gh *gh_client) ListRepoCommits(opts ListRepoCommitsOpts) (*CommitList, err
 		commits.Commits = GetUserCommits(commits.Commits, opts.Authors)
 	}
 
-	// client.Repositories.GetCommit(ctx, org, repo, "sha", &go_github.ListOptions{} )
+	// remove same commits from different branches
+	if opts.UniqueOnly {
+		removeDuplicates(commits)
+	}
 
 	return commits, nil
 }
@@ -65,13 +82,21 @@ func GetUserCommits(commits []*go_github.RepositoryCommit, authors []string) []*
 	return userCommits
 }
 
-func listCommitsPageFunc(ctx context.Context, client *go_github.Client, dest *CommitList, opts ListRepoCommitsOpts) pageListFunc {
+type listForPageOpts struct {
+	org    string
+	repo   string
+	branch string
+	since  time.Time
+	until  time.Time
+}
+
+func listCommitsPageFunc(ctx context.Context, client *go_github.Client, dest *CommitList, opts listForPageOpts) pageListFunc {
 	return func(page int) (bool, error) {
 		perPage := 100
-		commits, resp, listErr := client.Repositories.ListCommits(ctx, opts.Org, opts.Repo, &go_github.CommitsListOptions{
-			SHA:   opts.Branch,
-			Since: opts.Since,
-			Until: opts.Until,
+		commits, resp, listErr := client.Repositories.ListCommits(ctx, opts.org, opts.repo, &go_github.CommitsListOptions{
+			SHA:   opts.branch,
+			Since: opts.since,
+			Until: opts.until,
 			ListOptions: go_github.ListOptions{
 				Page:    page,
 				PerPage: perPage,
@@ -150,6 +175,26 @@ func isRepositoryCommitAuthor(commit *go_github.RepositoryCommit, author string)
 		return true
 	}
 
+	return false
+}
+
+func removeDuplicates(commitList *CommitList) {
+	commits := []*go_github.RepositoryCommit{}
+	for _, commit := range commitList.Commits {
+		if !isInCommits(commits, commit) {
+			commits = append(commits, commit)
+		}
+	}
+
+	commitList.Commits = commits
+}
+
+func isInCommits(where []*go_github.RepositoryCommit, what *go_github.RepositoryCommit) bool {
+	for _, commit := range where {
+		if commit.GetSHA() == what.GetSHA() {
+			return true
+		}
+	}
 	return false
 }
 

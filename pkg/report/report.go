@@ -15,8 +15,9 @@ const (
 )
 
 type Result struct {
-	Org        string
-	Repo       string
+	Org  string
+	Repo string
+	// URL        string
 	CommitList *github.CommitList
 }
 
@@ -66,6 +67,10 @@ func buildreportResult(opts Options) []string {
 					"%s (%s)",
 					strings.Split(commit.Commit.GetMessage(), "\n")[0],
 					file.BuildDiffFilename(commit.GetSHA(), org, repo),
+					// "<a href=\"%s/%s/%s/commit/%s\">%s</a> (%s)",
+					// result.URL, org, repo, commit.GetSHA(), // commit link
+					// strings.Split(commit.Commit.GetMessage(), "\n")[0], // commit message
+					// file.BuildDiffFilename(commit.GetSHA(), org, repo), // file name
 				),
 			)
 		}

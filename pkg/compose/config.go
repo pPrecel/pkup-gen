@@ -14,9 +14,12 @@ type Config struct {
 }
 
 type Remote struct {
-	Name          string `yaml:"name"`
-	Token         string `yaml:"token,omitempty"`
-	EnterpriseUrl string `yaml:"enterpriseUrl,omitempty"`
+	Name          string   `yaml:"name"`
+	Token         string   `yaml:"token,omitempty"`
+	EnterpriseUrl string   `yaml:"enterpriseUrl,omitempty"`
+	Branches      []string `yaml:"branches,omitempty"`
+	AllBranches   bool     `yaml:"allBranches"`
+	UniqueOnly    bool     `yaml:"uniqueOnly"`
 }
 
 type User struct {

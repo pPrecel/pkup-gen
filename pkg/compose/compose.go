@@ -131,10 +131,15 @@ func (c *compose) composeForUser(remoteClients map[string]github.Client, repoCom
 					"failed to generate artifacts for repo '%s': %s", repo.repo, saveErr.Error(),
 				))
 			} else {
+				// url := repo.enterpriseUrl
+				// if url == "" {
+				// 	url = "https://github.com"
+				// }
 				commitList.Append(&userCommits)
 				results = append(results, report.Result{
-					Org:        repo.org,
-					Repo:       repo.repo,
+					Org:  repo.org,
+					Repo: repo.repo,
+					// URL:        url,
 					CommitList: &userCommits,
 				})
 			}
@@ -189,17 +194,24 @@ func (c *compose) listAllCommits(remoteClients map[string]github.Client, config 
 
 		wg.Add(1)
 		go func() {
+			defer wg.Done()
+
 			orgName, repoName := splitRemoteName(repo.Name)
 			client := remoteClients[repo.EnterpriseUrl]
+
 			c.logger.Debug("list commits for repo", c.logger.Args("org", orgName, "repo", repoName))
 			commitList, listErr := client.ListRepoCommits(github.ListRepoCommitsOpts{
-				Org:   orgName,
-				Repo:  repoName,
-				Since: opts.Since,
-				Until: opts.Until,
+				Org:        orgName,
+				Repo:       repoName,
+				Since:      opts.Since,
+				Until:      opts.Until,
+				Branches:   repo.Branches,
+				UniqueOnly: repo.UniqueOnly,
 			})
 			if listErr != nil {
+				c.logger.Warn("failed to list commits", c.logger.Args("org", orgName, "repo", repoName, "error", listErr.Error()))
 				multierror.Append(err, listErr)
+				return
 			}
 
 			c.logger.Debug("found commits", c.logger.Args("org", orgName, "repo", repoName, "count", len(commitList.Commits)))
@@ -209,7 +221,6 @@ func (c *compose) listAllCommits(remoteClients map[string]github.Client, config 
 				enterpriseUrl: repo.EnterpriseUrl,
 				commits:       commitList,
 			}
-			wg.Done()
 		}()
 	}
 
@@ -219,6 +230,8 @@ func (c *compose) listAllCommits(remoteClients map[string]github.Client, config 
 
 func (c *compose) listOrgRepos(remoteClients map[string]github.Client, config *Config) ([]Remote, error) {
 	remotes := []Remote{}
+
+	// resolve orgs
 	for _, org := range config.Orgs {
 		c := remoteClients[org.EnterpriseUrl]
 
@@ -228,15 +241,52 @@ func (c *compose) listOrgRepos(remoteClients map[string]github.Client, config *C
 		}
 
 		for _, repo := range repos {
+			name := fmt.Sprintf("%s/%s", org.Name, repo)
+
+			if containsOrgRepo(config.Repos, name) {
+				// skip if repo already is in config.Repos
+				continue
+			}
+
 			remotes = append(remotes, Remote{
-				Name:          fmt.Sprintf("%s/%s", org.Name, repo),
+				Name:          name,
 				EnterpriseUrl: org.EnterpriseUrl,
 				Token:         org.Token,
+				Branches:      org.Branches,
+				AllBranches:   org.AllBranches,
+				UniqueOnly:    org.UniqueOnly,
 			})
 		}
 	}
 
-	return append(config.Repos, remotes...), nil
+	remotes = append(config.Repos, remotes...)
+
+	// check if remote has AllBranches set
+	for i, remote := range remotes {
+		c := remoteClients[remote.EnterpriseUrl]
+		repoOrg := strings.Split(remote.Name, "/")
+
+		if remote.AllBranches {
+			branchList, listError := c.ListRepoBranches(repoOrg[0], repoOrg[1])
+			if listError != nil {
+				return nil, listError
+			}
+
+			remotes[i].Branches = branchList.Branches
+		}
+	}
+
+	return remotes, nil
+}
+
+func containsOrgRepo(remotes []Remote, orgRepo string) bool {
+	for _, remote := range remotes {
+		if remote.Name == orgRepo {
+			return true
+		}
+	}
+
+	return false
 }
 
 func sanitizeOutputDir(dir string) (string, error) {

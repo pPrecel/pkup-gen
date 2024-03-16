@@ -122,12 +122,12 @@ func Test_gh_client_ListRepoCommits(t *testing.T) {
 		}
 
 		commitList, err := gh.ListRepoCommits(ListRepoCommitsOpts{
-			Org:     "test-org",
-			Repo:    "test-repo",
-			Branch:  "main",
-			Authors: []string{"test-name", "test-login"},
-			Since:   time.Time{},
-			Until:   time.Time{},
+			Org:      "test-org",
+			Repo:     "test-repo",
+			Branches: []string{"main"},
+			Authors:  []string{"test-name", "test-login"},
+			Since:    time.Time{},
+			Until:    time.Time{},
 		})
 
 		require.NoError(t, err)

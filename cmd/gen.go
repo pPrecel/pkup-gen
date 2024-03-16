@@ -131,9 +131,14 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 					return
 				}
 
+				// url := opts.enterpriseURL
+				// if url == "" {
+				// 	url = "https://github.com"
+				// }
 				reportResults = append(reportResults, report.Result{
-					Org:        org,
-					Repo:       repo,
+					Org:  org,
+					Repo: repo,
+					// URL:        url,
 					CommitList: commitList,
 				})
 				valChan <- commitList
