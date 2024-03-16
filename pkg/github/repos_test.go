@@ -19,7 +19,9 @@ func Test_gh_client_ListRepos(t *testing.T) {
 			"test-repo-3",
 		}
 
-		server := fixTestServer(t, nil, fixTestRepos(testRepos...))
+		server := fixTestServer(t, &testServerArgs{
+			repos: fixTestRepos(testRepos...),
+		})
 		defer server.Close()
 
 		gh := gh_client{
