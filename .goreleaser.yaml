@@ -39,7 +39,7 @@ archives:
 brews:
   - homepage: "http://github.com/pPrecel/pkup-gen"
     description: "Simple tool to generate PKUP artifacts."
-    tap:
+    repository:
       owner: pPrecel
       name: homebrew-tap
     goarm: "7"
