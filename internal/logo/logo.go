@@ -36,5 +36,7 @@ func Build(version string) string {
 		pkupLayers[4], pterm.Bold.Sprint(pterm.Red(genLayers[4])), "\n",
 		pkupLayers[5], pterm.Bold.Sprint(pterm.Red(genLayers[5])), "\n",
 		pkupLayers[6], pterm.Bold.Sprint(pterm.Red(genLayers[6])), pterm.Bold.Sprint(pterm.Gray(version)),
+		// TODO: pterm.Red(pkupLayers[6])
+		// TODO: support 'New Version Available!' info
 	)
 }

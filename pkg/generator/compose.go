@@ -1,7 +1,6 @@
-package compose
+package generator
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -14,33 +13,11 @@ import (
 	"github.com/pPrecel/PKUP/pkg/artifacts"
 	"github.com/pPrecel/PKUP/pkg/github"
 	"github.com/pPrecel/PKUP/pkg/report"
-	"github.com/pterm/pterm"
 )
 
 const (
 	logTimeFormat = "02.01.2006 15:04:05"
 )
-
-//go:generate mockery --name=Compose --output=automock --outpkg=automock --case=underscore
-type Compose interface {
-	ForConfig(*Config, ComposeOpts) error
-}
-
-type buildClientFunc func(context.Context, *pterm.Logger, github.ClientOpts) (github.Client, error)
-
-type compose struct {
-	ctx         context.Context
-	logger      *pterm.Logger
-	buildClient buildClientFunc
-}
-
-func New(ctx context.Context, logger *pterm.Logger) Compose {
-	return &compose{
-		ctx:         ctx,
-		logger:      logger,
-		buildClient: github.NewClient,
-	}
-}
 
 type ComposeOpts struct {
 	Since time.Time
@@ -48,7 +25,7 @@ type ComposeOpts struct {
 	Ci    bool
 }
 
-func (c *compose) ForConfig(config *Config, opts ComposeOpts) error {
+func (c *generator) ForConfig(config *Config, opts ComposeOpts) error {
 	view := view.NewMultiTaskView(c.logger, opts.Ci)
 	viewLogger := c.logger.WithWriter(view.NewWriter())
 
@@ -95,7 +72,7 @@ func (c *compose) ForConfig(config *Config, opts ComposeOpts) error {
 	return view.Run()
 }
 
-func (c *compose) composeForUser(remoteClients map[string]github.Client, repoCommits []*repoCommits, user *User, config *Config, opts *ComposeOpts) (*github.CommitList, error) {
+func (c *generator) composeForUser(remoteClients map[string]github.Client, repoCommits []*repoCommits, user *User, config *Config, opts *ComposeOpts) (*github.CommitList, error) {
 	outputDir, err := sanitizeOutputDir(user.OutputDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sanitize path '%s': %s", user.OutputDir, err.Error())
@@ -180,7 +157,7 @@ type repoCommits struct {
 	commits       *github.CommitList
 }
 
-func (c *compose) listAllCommits(remoteClients map[string]github.Client, config *Config, opts *ComposeOpts) ([]*repoCommits, error) {
+func (c *generator) listAllCommits(remoteClients map[string]github.Client, config *Config, opts *ComposeOpts) ([]*repoCommits, error) {
 	repos, err := c.listOrgRepos(remoteClients, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list repositories for orgs: %s", err.Error())
@@ -228,7 +205,7 @@ func (c *compose) listAllCommits(remoteClients map[string]github.Client, config 
 	return allRepoCommits, err
 }
 
-func (c *compose) listOrgRepos(remoteClients map[string]github.Client, config *Config) ([]Remote, error) {
+func (c *generator) listOrgRepos(remoteClients map[string]github.Client, config *Config) ([]Remote, error) {
 	remotes := []Remote{}
 
 	// resolve orgs

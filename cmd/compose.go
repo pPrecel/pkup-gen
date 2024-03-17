@@ -6,7 +6,7 @@ import (
 	"time"
 
 	"github.com/pPrecel/PKUP/internal/logo"
-	"github.com/pPrecel/PKUP/pkg/compose"
+	"github.com/pPrecel/PKUP/pkg/generator"
 	"github.com/pPrecel/PKUP/pkg/period"
 	"github.com/pPrecel/PKUP/pkg/report"
 	"github.com/pterm/pterm"
@@ -19,6 +19,7 @@ func NewComposeCommand(opts *Options) *cli.Command {
 		Options: opts,
 		since:   *cli.NewTimestamp(since),
 		until:   *cli.NewTimestamp(until),
+		//ci:      true,
 	}
 
 	return &cli.Command{
@@ -89,12 +90,12 @@ func composeCommandAction(ctx *cli.Context, opts *composeActionOpts) error {
 		"until", opts.until.Value().Local().Format(logTimeFormat),
 	))
 
-	cfg, err := compose.ReadConfig(opts.config)
+	cfg, err := generator.ReadConfig(opts.config)
 	if err != nil {
 		return fmt.Errorf("failed to read config from path '%s': %s", opts.config, err.Error())
 	}
 
-	return compose.New(ctx.Context, opts.Log).ForConfig(cfg, compose.ComposeOpts{
+	return generator.New(ctx.Context, opts.Log).ForConfig(cfg, generator.ComposeOpts{
 		Since: *opts.since.Value(),
 		Until: *opts.until.Value(),
 		Ci:    opts.ci,

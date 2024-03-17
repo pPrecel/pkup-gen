@@ -26,7 +26,6 @@ type gh_client struct {
 type ClientOpts struct {
 	Token         string
 	EnterpriseURL string
-	AppClientID   string
 }
 
 func NewClient(ctx context.Context, logger *pterm.Logger, opts ClientOpts) (Client, error) {
