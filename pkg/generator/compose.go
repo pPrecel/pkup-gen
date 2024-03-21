@@ -72,7 +72,7 @@ func (c *generator) ForConfig(config *Config, opts ComposeOpts) error {
 	return view.Run()
 }
 
-func (c *generator) composeForUser(remoteClients map[string]github.Client, repoCommits []*repoCommits, user *User, config *Config, opts *ComposeOpts) (*github.CommitList, error) {
+func (c *generator) composeForUser(remoteClients *remoteClients, repoCommits []*repoCommits, user *User, config *Config, opts *ComposeOpts) (*github.CommitList, error) {
 	outputDir, err := sanitizeOutputDir(user.OutputDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sanitize path '%s': %s", user.OutputDir, err.Error())
@@ -95,7 +95,7 @@ func (c *generator) composeForUser(remoteClients map[string]github.Client, repoC
 				Commits: github.GetUserCommits(repo.commits.Commits, urlAuthors[repo.enterpriseUrl]),
 			}
 
-			saveErr := artifacts.SaveDiffToFiles(remoteClients[repo.enterpriseUrl], &userCommits, artifacts.Options{
+			saveErr := artifacts.SaveDiffToFiles(remoteClients.Get(repo.enterpriseUrl), &userCommits, artifacts.Options{
 				Org:     repo.org,
 				Repo:    repo.repo,
 				Authors: urlAuthors[repo.enterpriseUrl],
@@ -157,7 +157,7 @@ type repoCommits struct {
 	commits       *github.CommitList
 }
 
-func (c *generator) listAllCommits(remoteClients map[string]github.Client, config *Config, opts *ComposeOpts) ([]*repoCommits, error) {
+func (c *generator) listAllCommits(remoteClients *remoteClients, config *Config, opts *ComposeOpts) ([]*repoCommits, error) {
 	repos, err := c.listOrgRepos(remoteClients, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list repositories for orgs: %s", err.Error())
@@ -174,7 +174,7 @@ func (c *generator) listAllCommits(remoteClients map[string]github.Client, confi
 			defer wg.Done()
 
 			orgName, repoName := splitRemoteName(repo.Name)
-			client := remoteClients[repo.EnterpriseUrl]
+			client := remoteClients.Get(repo.EnterpriseUrl)
 
 			c.logger.Trace("listing commits for repo", c.logger.Args("org", orgName, "repo", repoName))
 			commitList, listErr := client.ListRepoCommits(github.ListRepoCommitsOpts{
@@ -205,12 +205,12 @@ func (c *generator) listAllCommits(remoteClients map[string]github.Client, confi
 	return allRepoCommits, err
 }
 
-func (c *generator) listOrgRepos(remoteClients map[string]github.Client, config *Config) ([]Remote, error) {
+func (c *generator) listOrgRepos(remoteClients *remoteClients, config *Config) ([]Remote, error) {
 	remotes := []Remote{}
 
 	// resolve orgs
 	for _, org := range config.Orgs {
-		c := remoteClients[org.EnterpriseUrl]
+		c := remoteClients.Get(org.EnterpriseUrl)
 
 		repos, err := c.ListRepos(org.Name)
 		if err != nil {
@@ -240,7 +240,7 @@ func (c *generator) listOrgRepos(remoteClients map[string]github.Client, config 
 
 	// check if remote has AllBranches set
 	for i, remote := range remotes {
-		c := remoteClients[remote.EnterpriseUrl]
+		c := remoteClients.Get(remote.EnterpriseUrl)
 		repoOrg := strings.Split(remote.Name, "/")
 
 		if remote.AllBranches {
