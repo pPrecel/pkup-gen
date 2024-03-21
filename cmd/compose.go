@@ -6,8 +6,8 @@ import (
 	"time"
 
 	"github.com/pPrecel/PKUP/internal/logo"
-	"github.com/pPrecel/PKUP/pkg/generator"
-	"github.com/pPrecel/PKUP/pkg/generator/config"
+	"github.com/pPrecel/PKUP/pkg/compose"
+	"github.com/pPrecel/PKUP/pkg/compose/config"
 	"github.com/pPrecel/PKUP/pkg/period"
 	"github.com/pPrecel/PKUP/pkg/report"
 	"github.com/pterm/pterm"
@@ -102,7 +102,7 @@ func NewComposeCommand(opts *Options) *cli.Command {
 }
 
 func composeCommandAction(ctx *cli.Context, opts *composeActionOpts) error {
-	opts.Log.Info("generating artifacts for the PKUP period", opts.Log.Args(
+	opts.Log.Info("generating report for the PKUP period", opts.Log.Args(
 		"config", opts.config,
 		"since", opts.since.Value().Local().Format(logTimeFormat),
 		"until", opts.until.Value().Local().Format(logTimeFormat),
@@ -113,7 +113,7 @@ func composeCommandAction(ctx *cli.Context, opts *composeActionOpts) error {
 		return fmt.Errorf("failed to read config from path '%s': %s", opts.config, err.Error())
 	}
 
-	return generator.New(ctx.Context, opts.Log).ForConfig(cfg, generator.ComposeOpts{
+	return compose.New(ctx.Context, opts.Log).ForConfig(cfg, compose.Options{
 		Since: *opts.since.Value(),
 		Until: *opts.until.Value(),
 		Ci:    opts.ci,

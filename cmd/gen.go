@@ -9,7 +9,8 @@ import (
 
 	"github.com/pPrecel/PKUP/internal/logo"
 	"github.com/pPrecel/PKUP/internal/token"
-	"github.com/pPrecel/PKUP/pkg/generator"
+	"github.com/pPrecel/PKUP/pkg/compose"
+	"github.com/pPrecel/PKUP/pkg/compose/config"
 	"github.com/pPrecel/PKUP/pkg/period"
 	"github.com/pPrecel/PKUP/pkg/report"
 	"github.com/pterm/pterm"
@@ -27,7 +28,6 @@ func NewGenCommand(opts *Options) *cli.Command {
 		Options: opts,
 		since:   *cli.NewTimestamp(since),
 		until:   *cli.NewTimestamp(until),
-		repos:   map[string][]string{},
 	}
 
 	return &cli.Command{
@@ -43,16 +43,15 @@ func NewGenCommand(opts *Options) *cli.Command {
 				Name:  "repo",
 				Usage: "<org>/<repo> slice - use this flag to look for user activity in specified repos",
 				Action: func(_ *cli.Context, args []string) error {
-					repos, err := parseReposMap(opts.Log, args)
-					actionsOpts.repos = repos
-					return err
+					actionsOpts.repos = args
+					return nil
 				},
 			},
 			&cli.StringSliceFlag{
 				Name:  "org",
 				Usage: "<org> slice - use this flag to look for user activity in all organization repos",
-				Action: func(_ *cli.Context, s []string) error {
-					actionsOpts.orgs = s
+				Action: func(_ *cli.Context, args []string) error {
+					actionsOpts.orgs = args
 					return nil
 				},
 			},
@@ -156,6 +155,22 @@ func NewGenCommand(opts *Options) *cli.Command {
 				},
 			},
 			&cli.BoolFlag{
+				Name:  "all-branches",
+				Usage: "search in all branches ( use with '--unique-only' to redice noise )",
+				Action: func(_ *cli.Context, b bool) error {
+					actionsOpts.allBranches = b
+					return nil
+				},
+			},
+			&cli.BoolFlag{
+				Name:  "unique-only",
+				Usage: "filter out redundant commits",
+				Action: func(_ *cli.Context, b bool) error {
+					actionsOpts.uniqueOnly = b
+					return nil
+				},
+			},
+			&cli.BoolFlag{
 				Name:     "ci",
 				Usage:    "print output using standard log",
 				Category: loggingCategory,
@@ -209,6 +224,11 @@ func NewGenCommand(opts *Options) *cli.Command {
 }
 
 func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
+	opts.Log.Info("generating report for the PKUP period", opts.Log.Args(
+		"since", opts.since.Value().Local().Format(logTimeFormat),
+		"until", opts.until.Value().Local().Format(logTimeFormat),
+	))
+
 	if opts.token == "" {
 		var err error
 		opts.token, err = token.Get(opts.Log, opts.PkupClientID)
@@ -217,22 +237,53 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 		}
 	}
 
-	return generator.New(ctx.Context, opts.Log).ForArgs(&generator.GeneratorArgs{
-		Username:      opts.username,
-		Orgs:          opts.orgs,
-		Repos:         opts.repos,
-		Token:         opts.token,
-		EnterpriseURL: opts.enterpriseURL,
-		Since:         opts.since.Value(),
-		Until:         opts.until.Value(),
-		OutputDir:     opts.outputDir,
-		TemplatePath:  opts.templatePath,
-		ReportFields:  opts.reportFields,
-		Ci:            opts.ci,
-		ProjectMeta: generator.ProjectMeta{
-			ProjectOwner: opts.ProjectOwner,
-			ProjectRepo:  opts.ProjectRepo,
-			BuildVersion: opts.BuildVersion,
-		},
+	return compose.New(ctx.Context, opts.Log).ForConfig(buildConfigFromOpts(opts), compose.Options{
+		Since: *opts.since.Value(),
+		Until: *opts.until.Value(),
+		Ci:    opts.ci,
 	})
+}
+
+func buildConfigFromOpts(opts *genActionOpts) *config.Config {
+	cfg := &config.Config{
+		Template: opts.templatePath,
+	}
+
+	if opts.enterpriseURL != "" {
+		cfg.Users = append(cfg.Users, config.User{
+			OutputDir:    opts.outputDir,
+			ReportFields: opts.reportFields,
+			EnterpriseUsernames: map[string]string{
+				opts.enterpriseURL: opts.username,
+			},
+		})
+	} else {
+		cfg.Users = append(cfg.Users, config.User{
+			Username:     opts.username,
+			OutputDir:    opts.outputDir,
+			ReportFields: opts.reportFields,
+		})
+	}
+
+	for _, org := range opts.orgs {
+		cfg.Orgs = append(cfg.Orgs, config.Remote{
+			Name:          org,
+			Token:         opts.token,
+			EnterpriseUrl: opts.enterpriseURL,
+			AllBranches:   opts.allBranches,
+			UniqueOnly:    opts.uniqueOnly,
+		})
+	}
+
+	for _, repo := range opts.repos {
+		cfg.Repos = append(cfg.Repos, config.Remote{
+			Name:          repo,
+			Token:         opts.token,
+			EnterpriseUrl: opts.enterpriseURL,
+			AllBranches:   opts.allBranches,
+			UniqueOnly:    opts.uniqueOnly,
+		})
+	}
+
+	return cfg
 }

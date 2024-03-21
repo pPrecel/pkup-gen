@@ -1,6 +1,7 @@
-package generator
+package compose
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -11,23 +12,41 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/pPrecel/PKUP/internal/view"
 	"github.com/pPrecel/PKUP/pkg/artifacts"
-	"github.com/pPrecel/PKUP/pkg/generator/config"
-	"github.com/pPrecel/PKUP/pkg/generator/utils"
+	"github.com/pPrecel/PKUP/pkg/compose/config"
+	"github.com/pPrecel/PKUP/pkg/compose/utils"
 	"github.com/pPrecel/PKUP/pkg/github"
 	"github.com/pPrecel/PKUP/pkg/report"
+	"github.com/pterm/pterm"
 )
 
-const (
-	logTimeFormat = "02.01.2006 15:04:05"
-)
+//go:generate mockery --name=Generator --output=automock --outpkg=automock --case=underscore
+type Generator interface {
+	ForConfig(*config.Config, Options) error
+}
 
-type ComposeOpts struct {
+type generator struct {
+	ctx         context.Context
+	logger      *pterm.Logger
+	buildClient utils.BuildClientFunc
+
+	repoCommitsLister utils.LazyCommitsLister
+}
+
+func New(ctx context.Context, logger *pterm.Logger) Generator {
+	return &generator{
+		ctx:         ctx,
+		logger:      logger,
+		buildClient: github.NewClient,
+	}
+}
+
+type Options struct {
 	Since time.Time
 	Until time.Time
 	Ci    bool
 }
 
-func (c *generator) ForConfig(config *config.Config, opts ComposeOpts) error {
+func (c *generator) ForConfig(config *config.Config, opts Options) error {
 	view := view.NewMultiTaskView(c.logger, opts.Ci)
 	viewLogger := c.logger.WithWriter(view.NewWriter())
 
@@ -60,7 +79,7 @@ func (c *generator) ForConfig(config *config.Config, opts ComposeOpts) error {
 	return view.Run()
 }
 
-func (c *generator) composeForUser(remoteClients *utils.RemoteClients, user *config.User, config *config.Config, opts *ComposeOpts) (*github.CommitList, error) {
+func (c *generator) composeForUser(remoteClients *utils.RemoteClients, user *config.User, config *config.Config, opts *Options) (*github.CommitList, error) {
 	outputDir, err := sanitizeOutputDir(user.OutputDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sanitize path '%s': %s", user.OutputDir, err.Error())
@@ -124,21 +143,23 @@ func (c *generator) composeForUser(remoteClients *utils.RemoteClients, user *con
 		return nil, errors
 	}
 
-	templatePath, err := filepath.Abs(config.Template)
-	if err != nil {
-		return nil, err
-	}
+	if config.Template != "" {
+		templatePath, err := filepath.Abs(config.Template)
+		if err != nil {
+			return nil, err
+		}
 
-	err = report.Render(report.Options{
-		OutputDir:    outputDir,
-		TemplatePath: templatePath,
-		PeriodFrom:   opts.Since,
-		PeriodTill:   opts.Until,
-		Results:      results,
-		CustomValues: user.ReportFields,
-	})
-	if err != nil {
-		return nil, fmt.Errorf("failed to render report: %s", err.Error())
+		err = report.Render(report.Options{
+			OutputDir:    outputDir,
+			TemplatePath: templatePath,
+			PeriodFrom:   opts.Since,
+			PeriodTill:   opts.Until,
+			Results:      results,
+			CustomValues: user.ReportFields,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("failed to render report: %s", err.Error())
+		}
 	}
 
 	return &commitList, nil

@@ -84,12 +84,12 @@ func selectChannelsForSpinners(workingSpinners map[string]*pterm.SpinnerPrinter,
 		if ok {
 			if len(commitList.Commits) == 0 {
 				workingSpinners[taskName].Warning(
-					fmt.Sprintf("skipping '%s' no user activity detected", taskName),
+					fmt.Sprintf("skipping %s no user activity detected", taskName),
 				)
 			} else {
 				text := buildTreeString(
 					fmt.Sprintf(
-						"found %d commits for '%s'",
+						"found %d commits for %s",
 						len(commitList.Commits), taskName),
 					commitsToStringList(commitList),
 				)

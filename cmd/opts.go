@@ -41,8 +41,10 @@ type genActionOpts struct {
 	enterpriseURL string
 	templatePath  string
 	orgs          []string
-	repos         map[string][]string
+	repos         []string
 	reportFields  map[string]string
+	uniqueOnly    bool
+	allBranches   bool
 	ci            bool
 }
 
@@ -77,21 +79,4 @@ func parseReportFields(args []string) (map[string]string, error) {
 	}
 
 	return reportFields, nil
-}
-
-func parseReposMap(log *pterm.Logger, args []string) (map[string][]string, error) {
-	repos := map[string][]string{}
-	for i := range args {
-		arg := args[i]
-
-		log.Debug("parsing flag", log.Args("argument", arg))
-		argSlice := strings.Split(arg, "/")
-		if len(argSlice) != 2 {
-			return nil, fmt.Errorf("repo '%s' must be in format <org>/<repo>", arg)
-		}
-
-		repos[argSlice[0]] = append(repos[argSlice[0]], argSlice[1])
-	}
-
-	return repos, nil
 }
