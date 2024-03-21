@@ -4,17 +4,30 @@ import (
 	"fmt"
 )
 
-func buildUrlAuthors(remoteClients *remoteClients, user *User) (map[string][]string, error) {
-	authorsMap := map[string][]string{}
+// use to get GitHub username
+const DefaultGitHubAuthor = ""
+
+type UrlAuthors map[string][]string
+
+func (ua UrlAuthors) GetAuthors(url string) []string {
+	return ua[url]
+}
+
+func (ua UrlAuthors) set(url string, authors []string) {
+	ua[url] = authors
+}
+
+func buildUrlAuthors(remoteClients *remoteClients, user *User) (*UrlAuthors, error) {
+	authorsMap := &UrlAuthors{}
 
 	// get signatures for opensource if not empty
 	if user.Username != "" {
-		signatures, err := remoteClients.Get("").GetUserSignatures(user.Username)
+		signatures, err := remoteClients.Get(DefaultGitHubURL).GetUserSignatures(user.Username)
 		if err != nil {
 			return nil, fmt.Errorf("failed to list user signatures for opensource: %s", err.Error())
 		}
 
-		authorsMap[""] = signatures
+		authorsMap.set(DefaultGitHubAuthor, signatures)
 	}
 
 	// get signatures for every enterprise
@@ -29,7 +42,7 @@ func buildUrlAuthors(remoteClients *remoteClients, user *User) (map[string][]str
 			return nil, fmt.Errorf("failed to list user signatures for '%s': %s", url, err.Error())
 		}
 
-		authorsMap[url] = signatures
+		authorsMap.set(url, signatures)
 	}
 
 	return authorsMap, nil

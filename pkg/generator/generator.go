@@ -19,6 +19,8 @@ type generator struct {
 	ctx         context.Context
 	logger      *pterm.Logger
 	buildClient buildClientFunc
+
+	repoCommitsLister LazyCommitsLister
 }
 
 func New(ctx context.Context, logger *pterm.Logger) Generator {

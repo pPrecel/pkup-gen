@@ -34,14 +34,16 @@ func (c *generator) ForConfig(config *Config, opts ComposeOpts) error {
 		return err
 	}
 
+	c.repoCommitsLister = NewLazyRepoCommitsLister(c.logger, remoteClients)
+
 	for i := range config.Users {
 		user := config.Users[i]
 
-		go func() {
-			valChan := make(chan *github.CommitList)
-			errChan := make(chan error)
-			view.Add(user.Username, valChan, errChan)
+		valChan := make(chan *github.CommitList)
+		errChan := make(chan error)
+		view.Add(getUsernames(user), valChan, errChan)
 
+		go func() {
 			viewLogger.Debug("compose for user", viewLogger.Args("user", user.Username))
 			commitList, err := c.composeForUser(remoteClients, &user, config, &opts)
 			if err != nil {
@@ -67,7 +69,7 @@ func (c *generator) composeForUser(remoteClients *remoteClients, user *User, con
 		return nil, fmt.Errorf("failed to list user signatures: %s", err.Error())
 	}
 
-	repoCommits, err := c.listAllCommits(remoteClients, config, opts)
+	repoCommits, err := c.repoCommitsLister.List(config, opts)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list commits: %s", err.Error())
 	}
@@ -76,18 +78,19 @@ func (c *generator) composeForUser(remoteClients *remoteClients, user *User, con
 	var errors error
 	commitList := github.CommitList{}
 	results := []report.Result{}
-	for i := range repoCommits {
-		repo := repoCommits[i]
+	for i := range repoCommits.RepoCommits {
+		repo := repoCommits.RepoCommits[i]
 		wg.Add(1)
 		go func() {
+			authors := urlAuthors.GetAuthors(repo.enterpriseUrl)
 			userCommits := github.CommitList{
-				Commits: github.GetUserCommits(repo.commits.Commits, urlAuthors[repo.enterpriseUrl]),
+				Commits: github.GetUserCommits(repo.commits.Commits, authors),
 			}
 
 			saveErr := artifacts.SaveDiffToFiles(remoteClients.Get(repo.enterpriseUrl), &userCommits, artifacts.Options{
 				Org:     repo.org,
 				Repo:    repo.repo,
-				Authors: urlAuthors[repo.enterpriseUrl],
+				Authors: authors,
 				Dir:     outputDir,
 				Since:   opts.Since,
 				Until:   opts.Until,
@@ -139,136 +142,17 @@ func (c *generator) composeForUser(remoteClients *remoteClients, user *User, con
 	return &commitList, nil
 }
 
-var (
-	repoCommitsList    []*repoCommits = nil
-	listAllCommitsLock                = sync.Mutex{}
-)
-
-type repoCommits struct {
-	org           string
-	repo          string
-	enterpriseUrl string
-	commits       *github.CommitList
-}
-
-// list commits if were lister before
-// if not then list them from remote
-func (c *generator) listAllCommits(remoteClients *remoteClients, config *Config, opts *ComposeOpts) ([]*repoCommits, error) {
-	listAllCommitsLock.Lock()
-	defer listAllCommitsLock.Unlock()
-
-	if repoCommitsList != nil {
-		return repoCommitsList, nil
+func getUsernames(user User) string {
+	users := []string{}
+	if user.Username != "" {
+		users = append(users, user.Username)
 	}
 
-	repos, err := c.listOrgRepos(remoteClients, config)
-	if err != nil {
-		return nil, fmt.Errorf("failed to list repositories for orgs: %s", err.Error())
+	for _, enterpriseUsername := range user.EnterpriseUsernames {
+		users = append(users, enterpriseUsername)
 	}
 
-	wg := sync.WaitGroup{}
-	allRepoCommits := make([]*repoCommits, len(repos))
-	for i, r := range repos {
-		iter := i
-		repo := r
-
-		wg.Add(1)
-		go func() {
-			defer wg.Done()
-
-			orgName, repoName := splitRemoteName(repo.Name)
-			client := remoteClients.Get(repo.EnterpriseUrl)
-
-			c.logger.Trace("listing commits for repo", c.logger.Args("org", orgName, "repo", repoName))
-			commitList, listErr := client.ListRepoCommits(github.ListRepoCommitsOpts{
-				Org:        orgName,
-				Repo:       repoName,
-				Since:      opts.Since,
-				Until:      opts.Until,
-				Branches:   repo.Branches,
-				UniqueOnly: repo.UniqueOnly,
-			})
-			if listErr != nil {
-				c.logger.Warn("failed to list commits", c.logger.Args("org", orgName, "repo", repoName, "error", listErr.Error()))
-				multierror.Append(err, listErr)
-				return
-			}
-
-			c.logger.Debug("found commits", c.logger.Args("org", orgName, "repo", repoName, "count", len(commitList.Commits)))
-			allRepoCommits[iter] = &repoCommits{
-				org:           orgName,
-				repo:          repoName,
-				enterpriseUrl: repo.EnterpriseUrl,
-				commits:       commitList,
-			}
-		}()
-	}
-
-	wg.Wait()
-
-	repoCommitsList = allRepoCommits
-	return allRepoCommits, err
-}
-
-func (c *generator) listOrgRepos(remoteClients *remoteClients, config *Config) ([]Remote, error) {
-	remotes := []Remote{}
-
-	// resolve orgs
-	for _, org := range config.Orgs {
-		c := remoteClients.Get(org.EnterpriseUrl)
-
-		repos, err := c.ListRepos(org.Name)
-		if err != nil {
-			return nil, err
-		}
-
-		for _, repo := range repos {
-			name := fmt.Sprintf("%s/%s", org.Name, repo)
-
-			if containsOrgRepo(config.Repos, name) {
-				// skip if repo already is in config.Repos
-				continue
-			}
-
-			remotes = append(remotes, Remote{
-				Name:          name,
-				EnterpriseUrl: org.EnterpriseUrl,
-				Token:         org.Token,
-				Branches:      org.Branches,
-				AllBranches:   org.AllBranches,
-				UniqueOnly:    org.UniqueOnly,
-			})
-		}
-	}
-
-	remotes = append(config.Repos, remotes...)
-
-	// check if remote has AllBranches set
-	for i, remote := range remotes {
-		c := remoteClients.Get(remote.EnterpriseUrl)
-		repoOrg := strings.Split(remote.Name, "/")
-
-		if remote.AllBranches {
-			branchList, listError := c.ListRepoBranches(repoOrg[0], repoOrg[1])
-			if listError != nil {
-				return nil, listError
-			}
-
-			remotes[i].Branches = branchList.Branches
-		}
-	}
-
-	return remotes, nil
-}
-
-func containsOrgRepo(remotes []Remote, orgRepo string) bool {
-	for _, remote := range remotes {
-		if remote.Name == orgRepo {
-			return true
-		}
-	}
-
-	return false
+	return strings.Join(users, ", ")
 }
 
 func sanitizeOutputDir(dir string) (string, error) {
@@ -280,7 +164,7 @@ func sanitizeOutputDir(dir string) (string, error) {
 	return outputDir, os.MkdirAll(outputDir, os.ModePerm)
 }
 
-func splitRemoteName(remote string) (string, string) {
+func SplitRemoteName(remote string) (string, string) {
 	repoOrg := strings.Split(remote, "/")
 	return repoOrg[0], repoOrg[1]
 }

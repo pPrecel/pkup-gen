@@ -8,14 +8,17 @@ import (
 	"github.com/pterm/pterm"
 )
 
-type remoteClients map[string]github.Client
+// use to get default GitHub client
+const DefaultGitHubURL = ""
 
-func (rc remoteClients) Set(url string, client github.Client) {
-	rc[url] = client
-}
+type remoteClients map[string]github.Client
 
 func (rc remoteClients) Get(url string) github.Client {
 	return rc[url]
+}
+
+func (rc remoteClients) set(url string, client github.Client) {
+	rc[url] = client
 }
 
 func buildClients(ctx context.Context, logger *pterm.Logger, config *Config, buildClient buildClientFunc) (*remoteClients, error) {
@@ -47,7 +50,7 @@ func appendRemoteClients(dest *remoteClients, ctx context.Context, logger *pterm
 				return fmt.Errorf("failed to build client for '%s': %s", remotes[i].Name, err.Error())
 			}
 
-			dest.Set(remotes[i].EnterpriseUrl, client)
+			dest.set(remotes[i].EnterpriseUrl, client)
 		}
 	}
 
