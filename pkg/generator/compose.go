@@ -34,32 +34,16 @@ func (c *generator) ForConfig(config *Config, opts ComposeOpts) error {
 		return err
 	}
 
-	var repoCommits []*repoCommits
-	var listErr error
-	wg := sync.WaitGroup{}
-	wg.Add(1)
-	go func() {
-		viewLogger.Trace("listing all commits")
-		repoCommits, listErr = c.listAllCommits(remoteClients, config, &opts)
-		viewLogger.Debug("found commits for repos", viewLogger.Args("repos count", len(repoCommits)))
-		wg.Done()
-	}()
-
 	for i := range config.Users {
 		user := config.Users[i]
 
-		valChan := make(chan *github.CommitList)
-		errChan := make(chan error)
-		view.Add(user.Username, valChan, errChan)
-
 		go func() {
-			wg.Wait()
-			if listErr != nil {
-				errChan <- listErr
-			}
+			valChan := make(chan *github.CommitList)
+			errChan := make(chan error)
+			view.Add(user.Username, valChan, errChan)
 
 			viewLogger.Debug("compose for user", viewLogger.Args("user", user.Username))
-			commitList, err := c.composeForUser(remoteClients, repoCommits, &user, config, &opts)
+			commitList, err := c.composeForUser(remoteClients, &user, config, &opts)
 			if err != nil {
 				errChan <- err
 				return
@@ -72,7 +56,7 @@ func (c *generator) ForConfig(config *Config, opts ComposeOpts) error {
 	return view.Run()
 }
 
-func (c *generator) composeForUser(remoteClients *remoteClients, repoCommits []*repoCommits, user *User, config *Config, opts *ComposeOpts) (*github.CommitList, error) {
+func (c *generator) composeForUser(remoteClients *remoteClients, user *User, config *Config, opts *ComposeOpts) (*github.CommitList, error) {
 	outputDir, err := sanitizeOutputDir(user.OutputDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sanitize path '%s': %s", user.OutputDir, err.Error())
@@ -81,6 +65,11 @@ func (c *generator) composeForUser(remoteClients *remoteClients, repoCommits []*
 	urlAuthors, err := buildUrlAuthors(remoteClients, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list user signatures: %s", err.Error())
+	}
+
+	repoCommits, err := c.listAllCommits(remoteClients, config, opts)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list commits: %s", err.Error())
 	}
 
 	wg := sync.WaitGroup{}
@@ -150,6 +139,11 @@ func (c *generator) composeForUser(remoteClients *remoteClients, repoCommits []*
 	return &commitList, nil
 }
 
+var (
+	repoCommitsList    []*repoCommits = nil
+	listAllCommitsLock                = sync.Mutex{}
+)
+
 type repoCommits struct {
 	org           string
 	repo          string
@@ -157,7 +151,16 @@ type repoCommits struct {
 	commits       *github.CommitList
 }
 
+// list commits if were lister before
+// if not then list them from remote
 func (c *generator) listAllCommits(remoteClients *remoteClients, config *Config, opts *ComposeOpts) ([]*repoCommits, error) {
+	listAllCommitsLock.Lock()
+	defer listAllCommitsLock.Unlock()
+
+	if repoCommitsList != nil {
+		return repoCommitsList, nil
+	}
+
 	repos, err := c.listOrgRepos(remoteClients, config)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list repositories for orgs: %s", err.Error())
@@ -202,6 +205,8 @@ func (c *generator) listAllCommits(remoteClients *remoteClients, config *Config,
 	}
 
 	wg.Wait()
+
+	repoCommitsList = allRepoCommits
 	return allRepoCommits, err
 }
 
