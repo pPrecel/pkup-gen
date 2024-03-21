@@ -4,6 +4,8 @@ package automock
 
 import (
 	generator "github.com/pPrecel/PKUP/pkg/generator"
+	config "github.com/pPrecel/PKUP/pkg/generator/config"
+
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -27,11 +29,11 @@ func (_m *Generator) ForArgs(_a0 *generator.GeneratorArgs) error {
 }
 
 // ForConfig provides a mock function with given fields: _a0, _a1
-func (_m *Generator) ForConfig(_a0 *generator.Config, _a1 generator.ComposeOpts) error {
+func (_m *Generator) ForConfig(_a0 *config.Config, _a1 generator.ComposeOpts) error {
 	ret := _m.Called(_a0, _a1)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*generator.Config, generator.ComposeOpts) error); ok {
+	if rf, ok := ret.Get(0).(func(*config.Config, generator.ComposeOpts) error); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		r0 = ret.Error(0)

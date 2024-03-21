@@ -1,4 +1,4 @@
-package generator
+package config
 
 import (
 	"os"
@@ -29,7 +29,7 @@ type User struct {
 	ReportFields        map[string]string `yaml:"reportFields"`
 }
 
-func ReadConfig(path string) (*Config, error) {
+func Read(path string) (*Config, error) {
 	yamlFile, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err

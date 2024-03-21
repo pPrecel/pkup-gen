@@ -7,6 +7,7 @@ import (
 
 	"github.com/pPrecel/PKUP/internal/logo"
 	"github.com/pPrecel/PKUP/pkg/generator"
+	"github.com/pPrecel/PKUP/pkg/generator/config"
 	"github.com/pPrecel/PKUP/pkg/period"
 	"github.com/pPrecel/PKUP/pkg/report"
 	"github.com/pterm/pterm"
@@ -107,7 +108,7 @@ func composeCommandAction(ctx *cli.Context, opts *composeActionOpts) error {
 		"until", opts.until.Value().Local().Format(logTimeFormat),
 	))
 
-	cfg, err := generator.ReadConfig(opts.config)
+	cfg, err := config.Read(opts.config)
 	if err != nil {
 		return fmt.Errorf("failed to read config from path '%s': %s", opts.config, err.Error())
 	}

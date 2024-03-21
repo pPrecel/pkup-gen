@@ -1,7 +1,9 @@
-package generator
+package utils
 
 import (
 	"fmt"
+
+	"github.com/pPrecel/PKUP/pkg/generator/config"
 )
 
 // use to get GitHub username
@@ -17,7 +19,7 @@ func (ua UrlAuthors) set(url string, authors []string) {
 	ua[url] = authors
 }
 
-func buildUrlAuthors(remoteClients *remoteClients, user *User) (*UrlAuthors, error) {
+func BuildUrlAuthors(remoteClients *RemoteClients, user *config.User) (*UrlAuthors, error) {
 	authorsMap := &UrlAuthors{}
 
 	// get signatures for opensource if not empty

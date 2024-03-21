@@ -1,9 +1,10 @@
-package generator
+package utils
 
 import (
 	"context"
 	"fmt"
 
+	"github.com/pPrecel/PKUP/pkg/generator/config"
 	"github.com/pPrecel/PKUP/pkg/github"
 	"github.com/pterm/pterm"
 )
@@ -11,18 +12,20 @@ import (
 // use to get default GitHub client
 const DefaultGitHubURL = ""
 
-type remoteClients map[string]github.Client
+type RemoteClients map[string]github.Client
 
-func (rc remoteClients) Get(url string) github.Client {
+func (rc RemoteClients) Get(url string) github.Client {
 	return rc[url]
 }
 
-func (rc remoteClients) set(url string, client github.Client) {
+func (rc RemoteClients) set(url string, client github.Client) {
 	rc[url] = client
 }
 
-func buildClients(ctx context.Context, logger *pterm.Logger, config *Config, buildClient buildClientFunc) (*remoteClients, error) {
-	remoteClients := &remoteClients{}
+type BuildClientFunc func(context.Context, *pterm.Logger, github.ClientOpts) (github.Client, error)
+
+func BuildClients(ctx context.Context, logger *pterm.Logger, config *config.Config, buildClient BuildClientFunc) (*RemoteClients, error) {
+	remoteClients := &RemoteClients{}
 
 	err := appendRemoteClients(remoteClients, ctx, logger, config.Orgs, buildClient)
 	if err != nil {
@@ -34,7 +37,7 @@ func buildClients(ctx context.Context, logger *pterm.Logger, config *Config, bui
 	return remoteClients, err
 }
 
-func appendRemoteClients(dest *remoteClients, ctx context.Context, logger *pterm.Logger, remotes []Remote, buildClient buildClientFunc) error {
+func appendRemoteClients(dest *RemoteClients, ctx context.Context, logger *pterm.Logger, remotes []config.Remote, buildClient BuildClientFunc) error {
 	for i := range remotes {
 		if c := dest.Get(remotes[i].EnterpriseUrl); c == nil {
 			var err error

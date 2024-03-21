@@ -1,17 +1,19 @@
-package generator
+package utils
 
 import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/hashicorp/go-multierror"
+	"github.com/pPrecel/PKUP/pkg/generator/config"
 	"github.com/pPrecel/PKUP/pkg/github"
 	"github.com/pterm/pterm"
 )
 
 type LazyCommitsLister interface {
-	List(*Config, *ComposeOpts) (*RepoCommitsList, error)
+	List(*config.Config, time.Time, time.Time) (*RepoCommitsList, error)
 }
 
 type RepoCommitsList struct {
@@ -19,21 +21,21 @@ type RepoCommitsList struct {
 }
 
 type RepoCommits struct {
-	org           string
-	repo          string
-	enterpriseUrl string
-	commits       *github.CommitList
+	Org           string
+	Repo          string
+	EnterpriseUrl string
+	Commits       *github.CommitList
 }
 
 type lazyRepoCommitsLister struct {
 	mutex           sync.Mutex
 	repoCommitsList *RepoCommitsList
 
-	remoteClients *remoteClients
+	remoteClients *RemoteClients
 	logger        *pterm.Logger
 }
 
-func NewLazyRepoCommitsLister(logger *pterm.Logger, remoteClients *remoteClients) LazyCommitsLister {
+func NewLazyRepoCommitsLister(logger *pterm.Logger, remoteClients *RemoteClients) LazyCommitsLister {
 	return &lazyRepoCommitsLister{
 		remoteClients: remoteClients,
 		logger:        logger,
@@ -42,7 +44,7 @@ func NewLazyRepoCommitsLister(logger *pterm.Logger, remoteClients *remoteClients
 
 // list commits if were lister before
 // if not then list them from remote
-func (ll *lazyRepoCommitsLister) List(config *Config, opts *ComposeOpts) (*RepoCommitsList, error) {
+func (ll *lazyRepoCommitsLister) List(config *config.Config, since, until time.Time) (*RepoCommitsList, error) {
 	ll.mutex.Lock()
 	defer ll.mutex.Unlock()
 
@@ -73,8 +75,8 @@ func (ll *lazyRepoCommitsLister) List(config *Config, opts *ComposeOpts) (*RepoC
 			commitList, listErr := client.ListRepoCommits(github.ListRepoCommitsOpts{
 				Org:        orgName,
 				Repo:       repoName,
-				Since:      opts.Since,
-				Until:      opts.Until,
+				Since:      since,
+				Until:      until,
 				Branches:   repo.Branches,
 				UniqueOnly: repo.UniqueOnly,
 			})
@@ -86,10 +88,10 @@ func (ll *lazyRepoCommitsLister) List(config *Config, opts *ComposeOpts) (*RepoC
 
 			ll.logger.Debug("found commits", ll.logger.Args("org", orgName, "repo", repoName, "count", len(commitList.Commits)))
 			allRepoCommits[iter] = RepoCommits{
-				org:           orgName,
-				repo:          repoName,
-				enterpriseUrl: repo.EnterpriseUrl,
-				commits:       commitList,
+				Org:           orgName,
+				Repo:          repoName,
+				EnterpriseUrl: repo.EnterpriseUrl,
+				Commits:       commitList,
 			}
 		}()
 	}
@@ -102,11 +104,11 @@ func (ll *lazyRepoCommitsLister) List(config *Config, opts *ComposeOpts) (*RepoC
 	return ll.repoCommitsList, err
 }
 
-func (ll *lazyRepoCommitsLister) listOrgRepos(remoteClients *remoteClients, config *Config) ([]Remote, error) {
-	remotes := []Remote{}
+func (ll *lazyRepoCommitsLister) listOrgRepos(remoteClients *RemoteClients, cfg *config.Config) ([]config.Remote, error) {
+	remotes := []config.Remote{}
 
 	// resolve orgs
-	for _, org := range config.Orgs {
+	for _, org := range cfg.Orgs {
 		c := remoteClients.Get(org.EnterpriseUrl)
 
 		repos, err := c.ListRepos(org.Name)
@@ -117,12 +119,12 @@ func (ll *lazyRepoCommitsLister) listOrgRepos(remoteClients *remoteClients, conf
 		for _, repo := range repos {
 			name := fmt.Sprintf("%s/%s", org.Name, repo)
 
-			if containsOrgRepo(config.Repos, name) {
+			if containsOrgRepo(cfg.Repos, name) {
 				// skip if repo already is in config.Repos
 				continue
 			}
 
-			remotes = append(remotes, Remote{
+			remotes = append(remotes, config.Remote{
 				Name:          name,
 				EnterpriseUrl: org.EnterpriseUrl,
 				Token:         org.Token,
@@ -133,7 +135,7 @@ func (ll *lazyRepoCommitsLister) listOrgRepos(remoteClients *remoteClients, conf
 		}
 	}
 
-	remotes = append(config.Repos, remotes...)
+	remotes = append(cfg.Repos, remotes...)
 
 	// check if remote has AllBranches set
 	for i, remote := range remotes {
@@ -153,7 +155,7 @@ func (ll *lazyRepoCommitsLister) listOrgRepos(remoteClients *remoteClients, conf
 	return remotes, nil
 }
 
-func containsOrgRepo(remotes []Remote, orgRepo string) bool {
+func containsOrgRepo(remotes []config.Remote, orgRepo string) bool {
 	for _, remote := range remotes {
 		if remote.Name == orgRepo {
 			return true

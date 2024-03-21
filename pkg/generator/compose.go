@@ -11,6 +11,8 @@ import (
 	"github.com/hashicorp/go-multierror"
 	"github.com/pPrecel/PKUP/internal/view"
 	"github.com/pPrecel/PKUP/pkg/artifacts"
+	"github.com/pPrecel/PKUP/pkg/generator/config"
+	"github.com/pPrecel/PKUP/pkg/generator/utils"
 	"github.com/pPrecel/PKUP/pkg/github"
 	"github.com/pPrecel/PKUP/pkg/report"
 )
@@ -25,16 +27,16 @@ type ComposeOpts struct {
 	Ci    bool
 }
 
-func (c *generator) ForConfig(config *Config, opts ComposeOpts) error {
+func (c *generator) ForConfig(config *config.Config, opts ComposeOpts) error {
 	view := view.NewMultiTaskView(c.logger, opts.Ci)
 	viewLogger := c.logger.WithWriter(view.NewWriter())
 
-	remoteClients, err := buildClients(c.ctx, c.logger, config, c.buildClient)
+	remoteClients, err := utils.BuildClients(c.ctx, c.logger, config, c.buildClient)
 	if err != nil {
 		return err
 	}
 
-	c.repoCommitsLister = NewLazyRepoCommitsLister(c.logger, remoteClients)
+	c.repoCommitsLister = utils.NewLazyRepoCommitsLister(c.logger, remoteClients)
 
 	for i := range config.Users {
 		user := config.Users[i]
@@ -58,18 +60,18 @@ func (c *generator) ForConfig(config *Config, opts ComposeOpts) error {
 	return view.Run()
 }
 
-func (c *generator) composeForUser(remoteClients *remoteClients, user *User, config *Config, opts *ComposeOpts) (*github.CommitList, error) {
+func (c *generator) composeForUser(remoteClients *utils.RemoteClients, user *config.User, config *config.Config, opts *ComposeOpts) (*github.CommitList, error) {
 	outputDir, err := sanitizeOutputDir(user.OutputDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sanitize path '%s': %s", user.OutputDir, err.Error())
 	}
 
-	urlAuthors, err := buildUrlAuthors(remoteClients, user)
+	urlAuthors, err := utils.BuildUrlAuthors(remoteClients, user)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list user signatures: %s", err.Error())
 	}
 
-	repoCommits, err := c.repoCommitsLister.List(config, opts)
+	repoCommits, err := c.repoCommitsLister.List(config, opts.Since, opts.Until)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list commits: %s", err.Error())
 	}
@@ -82,14 +84,14 @@ func (c *generator) composeForUser(remoteClients *remoteClients, user *User, con
 		repo := repoCommits.RepoCommits[i]
 		wg.Add(1)
 		go func() {
-			authors := urlAuthors.GetAuthors(repo.enterpriseUrl)
+			authors := urlAuthors.GetAuthors(repo.EnterpriseUrl)
 			userCommits := github.CommitList{
-				Commits: github.GetUserCommits(repo.commits.Commits, authors),
+				Commits: github.GetUserCommits(repo.Commits.Commits, authors),
 			}
 
-			saveErr := artifacts.SaveDiffToFiles(remoteClients.Get(repo.enterpriseUrl), &userCommits, artifacts.Options{
-				Org:     repo.org,
-				Repo:    repo.repo,
+			saveErr := artifacts.SaveDiffToFiles(remoteClients.Get(repo.EnterpriseUrl), &userCommits, artifacts.Options{
+				Org:     repo.Org,
+				Repo:    repo.Repo,
 				Authors: authors,
 				Dir:     outputDir,
 				Since:   opts.Since,
@@ -97,7 +99,7 @@ func (c *generator) composeForUser(remoteClients *remoteClients, user *User, con
 			})
 			if saveErr != nil {
 				errors = multierror.Append(errors, fmt.Errorf(
-					"failed to generate artifacts for repo '%s': %s", repo.repo, saveErr.Error(),
+					"failed to generate artifacts for repo '%s': %s", repo.Repo, saveErr.Error(),
 				))
 			} else {
 				// url := repo.enterpriseUrl
@@ -106,8 +108,8 @@ func (c *generator) composeForUser(remoteClients *remoteClients, user *User, con
 				// }
 				commitList.Append(&userCommits)
 				results = append(results, report.Result{
-					Org:  repo.org,
-					Repo: repo.repo,
+					Org:  repo.Org,
+					Repo: repo.Repo,
 					// URL:        url,
 					CommitList: &userCommits,
 				})
@@ -142,7 +144,7 @@ func (c *generator) composeForUser(remoteClients *remoteClients, user *User, con
 	return &commitList, nil
 }
 
-func getUsernames(user User) string {
+func getUsernames(user config.User) string {
 	users := []string{}
 	if user.Username != "" {
 		users = append(users, user.Username)
@@ -162,9 +164,4 @@ func sanitizeOutputDir(dir string) (string, error) {
 	}
 
 	return outputDir, os.MkdirAll(outputDir, os.ModePerm)
-}
-
-func SplitRemoteName(remote string) (string, string) {
-	repoOrg := strings.Split(remote, "/")
-	return repoOrg[0], repoOrg[1]
 }
