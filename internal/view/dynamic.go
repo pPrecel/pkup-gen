@@ -40,7 +40,12 @@ func newDynamic(log *pterm.Logger) MultiTaskView {
 }
 
 func (mtv *dynamicMultiView) NewWriter() io.Writer {
-	return mtv.multiPrinter.NewWriter()
+	w := mtv.multiPrinter.NewWriter()
+
+	// write anything to avoid problems with empty buffer on the pterm side
+	w.Write([]byte{0})
+
+	return w
 }
 
 func (mtv *dynamicMultiView) Add(name string, valuesChan chan *github.CommitList, errorChan chan error) {

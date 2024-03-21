@@ -39,7 +39,7 @@ func (c *generator) ForConfig(config *Config, opts ComposeOpts) error {
 	wg := sync.WaitGroup{}
 	wg.Add(1)
 	go func() {
-		viewLogger.Debug("listing all commits")
+		viewLogger.Trace("listing all commits")
 		repoCommits, listErr = c.listAllCommits(remoteClients, config, &opts)
 		viewLogger.Debug("found commits for repos", viewLogger.Args("repos count", len(repoCommits)))
 		wg.Done()
@@ -176,7 +176,7 @@ func (c *generator) listAllCommits(remoteClients map[string]github.Client, confi
 			orgName, repoName := splitRemoteName(repo.Name)
 			client := remoteClients[repo.EnterpriseUrl]
 
-			c.logger.Debug("list commits for repo", c.logger.Args("org", orgName, "repo", repoName))
+			c.logger.Trace("listing commits for repo", c.logger.Args("org", orgName, "repo", repoName))
 			commitList, listErr := client.ListRepoCommits(github.ListRepoCommitsOpts{
 				Org:        orgName,
 				Repo:       repoName,

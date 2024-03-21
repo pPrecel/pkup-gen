@@ -3,7 +3,7 @@
 package automock
 
 import (
-	compose "github.com/pPrecel/PKUP/pkg/compose"
+	generator "github.com/pPrecel/PKUP/pkg/generator"
 	mock "github.com/stretchr/testify/mock"
 )
 
@@ -13,11 +13,11 @@ type Generator struct {
 }
 
 // ForArgs provides a mock function with given fields: _a0
-func (_m *Generator) ForArgs(_a0 *compose.GeneratorArgs) error {
+func (_m *Generator) ForArgs(_a0 *generator.GeneratorArgs) error {
 	ret := _m.Called(_a0)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*compose.GeneratorArgs) error); ok {
+	if rf, ok := ret.Get(0).(func(*generator.GeneratorArgs) error); ok {
 		r0 = rf(_a0)
 	} else {
 		r0 = ret.Error(0)
@@ -27,11 +27,11 @@ func (_m *Generator) ForArgs(_a0 *compose.GeneratorArgs) error {
 }
 
 // ForConfig provides a mock function with given fields: _a0, _a1
-func (_m *Generator) ForConfig(_a0 *compose.Config, _a1 compose.ComposeOpts) error {
+func (_m *Generator) ForConfig(_a0 *generator.Config, _a1 generator.ComposeOpts) error {
 	ret := _m.Called(_a0, _a1)
 
 	var r0 error
-	if rf, ok := ret.Get(0).(func(*compose.Config, compose.ComposeOpts) error); ok {
+	if rf, ok := ret.Get(0).(func(*generator.Config, generator.ComposeOpts) error); ok {
 		r0 = rf(_a0, _a1)
 	} else {
 		r0 = ret.Error(0)

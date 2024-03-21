@@ -67,13 +67,30 @@ func NewComposeCommand(opts *Options) *cli.Command {
 				Category:    loggingCategory,
 				Destination: &actionsOpts.ci,
 			},
+			&cli.BoolFlag{
+				Name:               "v",
+				Usage:              "verbose log mode",
+				DisableDefaultText: true,
+				Category:           loggingCategory,
+				Action: func(_ *cli.Context, _ bool) error {
+					opts.Log.Level = pterm.LogLevelDebug
+					return nil
+				},
+			},
+			&cli.BoolFlag{
+				Name:               "vv",
+				Usage:              "trace log mode",
+				DisableDefaultText: true,
+				Category:           loggingCategory,
+				Action: func(_ *cli.Context, _ bool) error {
+					opts.Log.Level = pterm.LogLevelTrace
+					return nil
+				},
+			},
 		},
 		Before: func(_ *cli.Context) error {
 			// print logo before any action
 			fmt.Printf("%s\n\n", logo.Build(opts.BuildVersion))
-
-			// set log level to debug
-			opts.Log.Level = pterm.LogLevelDebug
 
 			return nil
 		},
