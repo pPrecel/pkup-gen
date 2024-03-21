@@ -34,7 +34,7 @@ func (sv *staticView) Add(name string, valuesChan chan *github.CommitList, error
 
 func (sv *staticView) Run() error {
 	for name := range sv.tasks {
-		sv.log.Info(fmt.Sprintf("Processing '%s'...", name))
+		sv.log.Info(fmt.Sprintf("Processing %s...", name))
 	}
 
 	for len(sv.tasks) > 0 {

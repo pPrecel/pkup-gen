@@ -120,7 +120,7 @@ func buildTreeString(rootText string, values []string) string {
 func startSpinnersWithPrinter(tasks map[string]taskChannels, multi *pterm.MultiPrinter) (map[string]*pterm.SpinnerPrinter, error) {
 	spinners := map[string]*pterm.SpinnerPrinter{}
 	for name := range tasks {
-		text := fmt.Sprintf("Processing '%s'...", name)
+		text := fmt.Sprintf("Processing %s...", name)
 		spinner, err := pterm.DefaultSpinner.
 			WithWriter(multi.NewWriter()).
 			WithStyle(pterm.NewStyle(pterm.FgGray)).
