@@ -19,12 +19,12 @@ import (
 	"github.com/pterm/pterm"
 )
 
-//go:generate mockery --name=Generator --output=automock --outpkg=automock --case=underscore
-type Generator interface {
+//go:generate mockery --name=Compose --output=automock --outpkg=automock --case=underscore
+type Compose interface {
 	ForConfig(*config.Config, Options) error
 }
 
-type generator struct {
+type compose struct {
 	ctx         context.Context
 	logger      *pterm.Logger
 	buildClient utils.BuildClientFunc
@@ -32,8 +32,8 @@ type generator struct {
 	repoCommitsLister utils.LazyCommitsLister
 }
 
-func New(ctx context.Context, logger *pterm.Logger) Generator {
-	return &generator{
+func New(ctx context.Context, logger *pterm.Logger) Compose {
+	return &compose{
 		ctx:         ctx,
 		logger:      logger,
 		buildClient: github.NewClient,
@@ -46,7 +46,7 @@ type Options struct {
 	Ci    bool
 }
 
-func (c *generator) ForConfig(config *config.Config, opts Options) error {
+func (c *compose) ForConfig(config *config.Config, opts Options) error {
 	view := view.NewMultiTaskView(c.logger, opts.Ci)
 	viewLogger := c.logger.WithWriter(view.NewWriter())
 
@@ -79,7 +79,7 @@ func (c *generator) ForConfig(config *config.Config, opts Options) error {
 	return view.Run()
 }
 
-func (c *generator) composeForUser(remoteClients *utils.RemoteClients, user *config.User, config *config.Config, opts *Options) (*github.CommitList, error) {
+func (c *compose) composeForUser(remoteClients *utils.RemoteClients, user *config.User, config *config.Config, opts *Options) (*github.CommitList, error) {
 	outputDir, err := sanitizeOutputDir(user.OutputDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sanitize path '%s': %s", user.OutputDir, err.Error())
