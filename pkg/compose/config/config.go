@@ -23,10 +23,14 @@ type Remote struct {
 }
 
 type User struct {
-	Username            string            `yaml:"username"`
-	OutputDir           string            `yaml:"outputDir"`
-	EnterpriseUsernames map[string]string `yaml:"enterpriseUsernames"`
-	ReportFields        map[string]string `yaml:"reportFields"`
+	Usernames    []Username        `yaml:"usernames,omitempty"`
+	OutputDir    string            `yaml:"outputDir,omitempty"`
+	ReportFields map[string]string `yaml:"reportFields,omitempty"`
+}
+
+type Username struct {
+	Username      string `yaml:"username"`
+	EnterpriseUrl string `yaml:"enterpriseUrl,omitempty"`
 }
 
 func Read(path string) (*Config, error) {

@@ -247,22 +247,18 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 func buildConfigFromOpts(opts *genActionOpts) *config.Config {
 	cfg := &config.Config{
 		Template: opts.templatePath,
-	}
-
-	if opts.enterpriseURL != "" {
-		cfg.Users = append(cfg.Users, config.User{
-			OutputDir:    opts.outputDir,
-			ReportFields: opts.reportFields,
-			EnterpriseUsernames: map[string]string{
-				opts.enterpriseURL: opts.username,
+		Users: []config.User{
+			{
+				Usernames: []config.Username{
+					{
+						Username:      opts.username,
+						EnterpriseUrl: opts.enterpriseURL,
+					},
+				},
+				OutputDir:    opts.outputDir,
+				ReportFields: opts.reportFields,
 			},
-		})
-	} else {
-		cfg.Users = append(cfg.Users, config.User{
-			Username:     opts.username,
-			OutputDir:    opts.outputDir,
-			ReportFields: opts.reportFields,
-		})
+		},
 	}
 
 	for _, org := range opts.orgs {

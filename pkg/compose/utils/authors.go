@@ -19,32 +19,22 @@ func (ua UrlAuthors) set(url string, authors []string) {
 	ua[url] = authors
 }
 
-func BuildUrlAuthors(remoteClients *RemoteClients, user *config.User) (*UrlAuthors, error) {
+func BuildUrlAuthors(remoteClients *RemoteClients, usernames []config.Username) (*UrlAuthors, error) {
 	authorsMap := &UrlAuthors{}
 
-	// get signatures for opensource if not empty
-	if user.Username != "" {
-		signatures, err := remoteClients.Get(DefaultGitHubURL).GetUserSignatures(user.Username)
-		if err != nil {
-			return nil, fmt.Errorf("failed to list user signatures for opensource: %s", err.Error())
-		}
-
-		authorsMap.set(DefaultGitHubAuthor, signatures)
-	}
-
-	// get signatures for every enterprise
-	for url, username := range user.EnterpriseUsernames {
-		c := remoteClients.Get(url)
+	for _, u := range usernames {
+		c := remoteClients.Get(u.EnterpriseUrl)
 		if c == nil {
-			// enterprise user is specified by not enterpriese org/repo
+			// client is not specified for this enterpriseUrl
 			continue
 		}
-		signatures, err := c.GetUserSignatures(username)
+
+		signatures, err := c.GetUserSignatures(u.Username)
 		if err != nil {
-			return nil, fmt.Errorf("failed to list user signatures for '%s': %s", url, err.Error())
+			return nil, fmt.Errorf("failed to list user signatures for '%s': %s", u.Username, err.Error())
 		}
 
-		authorsMap.set(url, signatures)
+		authorsMap.set(u.EnterpriseUrl, signatures)
 	}
 
 	return authorsMap, nil

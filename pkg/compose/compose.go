@@ -65,7 +65,7 @@ func (c *compose) ForConfig(config *config.Config, opts Options) error {
 		view.Add(getUsernames(user), valChan, errChan)
 
 		go func() {
-			viewLogger.Debug("compose for user", viewLogger.Args("user", user.Username))
+			viewLogger.Debug("compose for user", viewLogger.Args("user", getUsernames(user)))
 			commitList, err := c.composeForUser(remoteClients, &user, config, &opts)
 			if err != nil {
 				errChan <- err
@@ -85,7 +85,7 @@ func (c *compose) composeForUser(remoteClients *utils.RemoteClients, user *confi
 		return nil, fmt.Errorf("failed to sanitize path '%s': %s", user.OutputDir, err.Error())
 	}
 
-	urlAuthors, err := utils.BuildUrlAuthors(remoteClients, user)
+	urlAuthors, err := utils.BuildUrlAuthors(remoteClients, user.Usernames)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list user signatures: %s", err.Error())
 	}
@@ -167,12 +167,8 @@ func (c *compose) composeForUser(remoteClients *utils.RemoteClients, user *confi
 
 func getUsernames(user config.User) string {
 	users := []string{}
-	if user.Username != "" {
-		users = append(users, user.Username)
-	}
-
-	for _, enterpriseUsername := range user.EnterpriseUsernames {
-		users = append(users, enterpriseUsername)
+	for _, u := range user.Usernames {
+		users = append(users, u.Username)
 	}
 
 	return strings.Join(users, ", ")
