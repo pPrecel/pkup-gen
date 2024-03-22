@@ -3,9 +3,7 @@ package view
 import (
 	"fmt"
 	"io"
-	"strings"
 
-	"github.com/pPrecel/PKUP/pkg/github"
 	"github.com/pkg/errors"
 	"github.com/pterm/pterm"
 )
@@ -48,7 +46,7 @@ func (mtv *dynamicMultiView) NewWriter() io.Writer {
 	return w
 }
 
-func (mtv *dynamicMultiView) Add(name string, valuesChan chan *github.CommitList, errorChan chan error) {
+func (mtv *dynamicMultiView) Add(name string, valuesChan chan []*RepoCommit, errorChan chan error) {
 	mtv.tasks[name] = taskChannels{
 		valuesChan: valuesChan,
 		errorChan:  errorChan,
@@ -80,9 +78,9 @@ func selectChannelsForSpinners(workingSpinners map[string]*pterm.SpinnerPrinter,
 		if ok {
 			workingSpinners[taskName].Fail(err)
 		}
-	case commitList, ok := <-channels.valuesChan:
+	case commits, ok := <-channels.valuesChan:
 		if ok {
-			if len(commitList.Commits) == 0 {
+			if len(commits) == 0 {
 				workingSpinners[taskName].Warning(
 					fmt.Sprintf("skipping %s no user activity detected", taskName),
 				)
@@ -90,8 +88,8 @@ func selectChannelsForSpinners(workingSpinners map[string]*pterm.SpinnerPrinter,
 				text := buildTreeString(
 					fmt.Sprintf(
 						"found %d commits for %s",
-						len(commitList.Commits), taskName),
-					commitsToStringList(commitList),
+						len(commits), taskName),
+					commitsToStringList(commits),
 				)
 				workingSpinners[taskName].Success(text)
 			}
@@ -136,13 +134,10 @@ func startSpinnersWithPrinter(tasks map[string]taskChannels, multi *pterm.MultiP
 	return spinners, nil
 }
 
-func commitsToStringList(list *github.CommitList) []string {
+func commitsToStringList(commits []*RepoCommit) []string {
 	stringList := []string{}
-	for i := range list.Commits {
-		commit := list.Commits[i]
-
-		line := strings.Split(commit.GetCommit().GetMessage(), "\n")[0]
-		stringList = append(stringList, line)
+	for _, commit := range commits {
+		stringList = append(stringList, fmt.Sprintf("%s/%s - %s", commit.Org, commit.Repo, commit.Message))
 	}
 
 	return stringList

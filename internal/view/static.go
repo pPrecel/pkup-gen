@@ -5,7 +5,6 @@ import (
 	"io"
 	"os"
 
-	"github.com/pPrecel/PKUP/pkg/github"
 	"github.com/pterm/pterm"
 )
 
@@ -25,7 +24,7 @@ func newStatic(log *pterm.Logger) MultiTaskView {
 	}
 }
 
-func (sv *staticView) Add(name string, valuesChan chan *github.CommitList, errorChan chan error) {
+func (sv *staticView) Add(name string, valuesChan chan []*RepoCommit, errorChan chan error) {
 	sv.tasks[name] = taskChannels{
 		valuesChan: valuesChan,
 		errorChan:  errorChan,
@@ -54,15 +53,22 @@ func selectChannelsForLogger(log *pterm.Logger, taskName string, channels taskCh
 		if ok {
 			log.Error(err.Error())
 		}
-	case commitList, ok := <-channels.valuesChan:
+	case repoCommits, ok := <-channels.valuesChan:
 		if ok {
-			if len(commitList.Commits) == 0 {
+			if len(repoCommits) == 0 {
 				log.Warn(
 					fmt.Sprintf("skipping %s no user activity detected", taskName),
 				)
 			} else {
-				text := fmt.Sprintf("found %d commits for %s", len(commitList.Commits), taskName)
-				log.Info(text, log.Args("commits", commitsToStringList(commitList)))
+				text := fmt.Sprintf("found %d commits for %s", len(repoCommits), taskName)
+				args := []pterm.LoggerArgument{}
+				for _, commit := range repoCommits {
+					args = append(args, pterm.LoggerArgument{
+						Key:   fmt.Sprintf("%s/%s", commit.Org, commit.Repo),
+						Value: commit.Message,
+					})
+				}
+				log.Info(text, args)
 			}
 		}
 	default:

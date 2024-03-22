@@ -47,8 +47,10 @@ type Options struct {
 }
 
 func (c *compose) ForConfig(config *config.Config, opts Options) error {
-	view := view.NewMultiTaskView(c.logger, opts.Ci)
-	viewLogger := c.logger.WithWriter(view.NewWriter())
+	c.logger.Trace("compose for", c.logger.Args("config", fmt.Sprintf("%+v", *config)))
+
+	taskView := view.NewMultiTaskView(c.logger, opts.Ci)
+	viewLogger := c.logger.WithWriter(taskView.NewWriter())
 
 	remoteClients, err := utils.BuildClients(c.ctx, c.logger, config, c.buildClient)
 	if err != nil {
@@ -60,9 +62,9 @@ func (c *compose) ForConfig(config *config.Config, opts Options) error {
 	for i := range config.Users {
 		user := config.Users[i]
 
-		valChan := make(chan *github.CommitList)
+		valChan := make(chan []*view.RepoCommit)
 		errChan := make(chan error)
-		view.Add(getUsernames(user), valChan, errChan)
+		taskView.Add(getUsernames(user), valChan, errChan)
 
 		go func() {
 			viewLogger.Debug("compose for user", viewLogger.Args("user", getUsernames(user)))
@@ -76,10 +78,10 @@ func (c *compose) ForConfig(config *config.Config, opts Options) error {
 		}()
 	}
 
-	return view.Run()
+	return taskView.Run()
 }
 
-func (c *compose) composeForUser(remoteClients *utils.RemoteClients, user *config.User, config *config.Config, opts *Options) (*github.CommitList, error) {
+func (c *compose) composeForUser(remoteClients *utils.RemoteClients, user *config.User, config *config.Config, opts *Options) ([]*view.RepoCommit, error) {
 	outputDir, err := sanitizeOutputDir(user.OutputDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sanitize path '%s': %s", user.OutputDir, err.Error())
@@ -97,7 +99,7 @@ func (c *compose) composeForUser(remoteClients *utils.RemoteClients, user *confi
 
 	wg := sync.WaitGroup{}
 	var errors error
-	commitList := github.CommitList{}
+	commitList := []*view.RepoCommit{}
 	results := []report.Result{}
 	for i := range repoCommits.RepoCommits {
 		repo := repoCommits.RepoCommits[i]
@@ -125,7 +127,26 @@ func (c *compose) composeForUser(remoteClients *utils.RemoteClients, user *confi
 				// if url == "" {
 				// 	url = "https://github.com"
 				// }
-				commitList.Append(&userCommits)
+
+				for _, commit := range userCommits.Commits {
+					repoCommit := &view.RepoCommit{
+						Org:     repo.Org,
+						Repo:    repo.Repo,
+						Message: strings.Split(commit.Commit.GetMessage(), "\n")[0],
+						SHA:     commit.GetSHA(),
+					}
+					commitList = append(commitList, repoCommit)
+
+					c.logger.Trace(
+						fmt.Sprintf("found commit for user %s", getUsernames(*user)),
+						c.logger.Args(
+							"org/repo", fmt.Sprintf("%s/%s", repoCommit.Org, repoCommit.Repo),
+							"sha", repoCommit.SHA,
+							"message", repoCommit.Message,
+						),
+					)
+				}
+
 				results = append(results, report.Result{
 					Org:  repo.Org,
 					Repo: repo.Repo,
@@ -162,7 +183,7 @@ func (c *compose) composeForUser(remoteClients *utils.RemoteClients, user *confi
 		}
 	}
 
-	return &commitList, nil
+	return commitList, nil
 }
 
 func getUsernames(user config.User) string {
