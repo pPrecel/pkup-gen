@@ -3,7 +3,7 @@ package utils
 import (
 	"fmt"
 
-	"github.com/pPrecel/PKUP/pkg/compose/config"
+	"github.com/pPrecel/PKUP/pkg/config"
 )
 
 // use to get GitHub username

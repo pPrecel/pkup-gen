@@ -7,7 +7,7 @@ import (
 
 	"github.com/pPrecel/PKUP/internal/logo"
 	"github.com/pPrecel/PKUP/pkg/compose"
-	"github.com/pPrecel/PKUP/pkg/compose/config"
+	"github.com/pPrecel/PKUP/pkg/config"
 	"github.com/pPrecel/PKUP/pkg/period"
 	"github.com/pPrecel/PKUP/pkg/report"
 	"github.com/pterm/pterm"

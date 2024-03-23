@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/go-multierror"
-	"github.com/pPrecel/PKUP/pkg/compose/config"
+	"github.com/pPrecel/PKUP/pkg/config"
 	"github.com/pPrecel/PKUP/pkg/github"
 	"github.com/pterm/pterm"
 )

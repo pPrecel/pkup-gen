@@ -4,7 +4,7 @@ package automock
 
 import (
 	compose "github.com/pPrecel/PKUP/pkg/compose"
-	config "github.com/pPrecel/PKUP/pkg/compose/config"
+	config "github.com/pPrecel/PKUP/pkg/config"
 
 	mock "github.com/stretchr/testify/mock"
 )
