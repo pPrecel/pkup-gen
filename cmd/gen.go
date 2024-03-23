@@ -247,16 +247,16 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 func buildConfigFromOpts(opts *genActionOpts) *config.Config {
 	cfg := &config.Config{
 		Template: opts.templatePath,
-		Users: []config.User{
+		Reports: []config.Report{
 			{
-				Usernames: []config.Username{
+				Signatures: []config.Signature{
 					{
 						Username:      opts.username,
 						EnterpriseUrl: opts.enterpriseURL,
 					},
 				},
-				OutputDir:    opts.outputDir,
-				ReportFields: opts.reportFields,
+				OutputDir:   opts.outputDir,
+				ExtraFields: opts.reportFields,
 			},
 		},
 	}

@@ -59,8 +59,8 @@ func (c *compose) ForConfig(config *config.Config, opts Options) error {
 
 	c.repoCommitsLister = utils.NewLazyRepoCommitsLister(c.logger, remoteClients)
 
-	for i := range config.Users {
-		user := config.Users[i]
+	for i := range config.Reports {
+		user := config.Reports[i]
 
 		valChan := make(chan []*view.RepoCommit)
 		errChan := make(chan error)
@@ -81,13 +81,13 @@ func (c *compose) ForConfig(config *config.Config, opts Options) error {
 	return taskView.Run()
 }
 
-func (c *compose) composeForUser(remoteClients *utils.RemoteClients, user *config.User, config *config.Config, opts *Options) ([]*view.RepoCommit, error) {
+func (c *compose) composeForUser(remoteClients *utils.RemoteClients, user *config.Report, config *config.Config, opts *Options) ([]*view.RepoCommit, error) {
 	outputDir, err := sanitizeOutputDir(user.OutputDir)
 	if err != nil {
 		return nil, fmt.Errorf("failed to sanitize path '%s': %s", user.OutputDir, err.Error())
 	}
 
-	urlAuthors, err := utils.BuildUrlAuthors(remoteClients, user.Usernames)
+	urlAuthors, err := utils.BuildUrlAuthors(remoteClients, user.Signatures)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list user signatures: %s", err.Error())
 	}
@@ -176,7 +176,7 @@ func (c *compose) composeForUser(remoteClients *utils.RemoteClients, user *confi
 			PeriodFrom:   opts.Since,
 			PeriodTill:   opts.Until,
 			Results:      results,
-			CustomValues: user.ReportFields,
+			CustomValues: user.ExtraFields,
 		})
 		if err != nil {
 			return nil, fmt.Errorf("failed to render report: %s", err.Error())
@@ -186,9 +186,9 @@ func (c *compose) composeForUser(remoteClients *utils.RemoteClients, user *confi
 	return commitList, nil
 }
 
-func getUsernames(user config.User) string {
+func getUsernames(user config.Report) string {
 	users := []string{}
-	for _, u := range user.Usernames {
+	for _, u := range user.Signatures {
 		users = append(users, u.Username)
 	}
 

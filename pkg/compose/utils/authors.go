@@ -19,7 +19,7 @@ func (ua UrlAuthors) set(url string, authors []string) {
 	ua[url] = authors
 }
 
-func BuildUrlAuthors(remoteClients *RemoteClients, usernames []config.Username) (*UrlAuthors, error) {
+func BuildUrlAuthors(remoteClients *RemoteClients, usernames []config.Signature) (*UrlAuthors, error) {
 	authorsMap := &UrlAuthors{}
 
 	for _, u := range usernames {

@@ -10,7 +10,7 @@ type Config struct {
 	Template string   `yaml:"template"`
 	Repos    []Remote `yaml:"repos,omitempty"`
 	Orgs     []Remote `yaml:"orgs,omitempty"`
-	Users    []User   `yaml:"users,omitempty"`
+	Reports  []Report `yaml:"reports,omitempty"`
 }
 
 type Remote struct {
@@ -22,13 +22,13 @@ type Remote struct {
 	UniqueOnly    bool     `yaml:"uniqueOnly"`
 }
 
-type User struct {
-	Usernames    []Username        `yaml:"usernames,omitempty"`
-	OutputDir    string            `yaml:"outputDir,omitempty"`
-	ReportFields map[string]string `yaml:"reportFields,omitempty"`
+type Report struct {
+	Signatures  []Signature       `yaml:"signatures,omitempty"`
+	OutputDir   string            `yaml:"outputDir,omitempty"`
+	ExtraFields map[string]string `yaml:"extraFields,omitempty"`
 }
 
-type Username struct {
+type Signature struct {
 	Username      string `yaml:"username"`
 	EnterpriseUrl string `yaml:"enterpriseUrl,omitempty"`
 }
