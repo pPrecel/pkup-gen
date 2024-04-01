@@ -47,8 +47,6 @@ type Options struct {
 }
 
 func (c *compose) ForConfig(config *config.Config, opts Options) error {
-	c.logger.Trace("compose for", c.logger.Args("config", fmt.Sprintf("%+v", *config)))
-
 	taskView := view.NewMultiTaskView(c.logger, opts.Ci)
 	viewLogger := c.logger.WithWriter(taskView.NewWriter())
 

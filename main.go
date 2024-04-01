@@ -49,6 +49,7 @@ func main() {
 			cmd.NewGenCommand(opts),
 			cmd.NewComposeCommand(opts),
 			cmd.NewVersionCommand(opts),
+			cmd.NewSendCommand(opts),
 		},
 	}
 

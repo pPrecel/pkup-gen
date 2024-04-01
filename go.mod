@@ -11,10 +11,14 @@ require (
 	github.com/stretchr/testify v1.8.4
 	github.com/urfave/cli/v2 v2.25.7
 	github.com/zalando/go-keyring v0.2.3
+	gopkg.in/mail.v2 v2.3.1
 	k8s.io/utils v0.0.0-20230726121419-3b25d923346b
 )
 
-require github.com/hashicorp/errwrap v1.0.0 // indirect
+require (
+	github.com/hashicorp/errwrap v1.0.0 // indirect
+	gopkg.in/alexcesaro/quotedprintable.v3 v3.0.0-20150716171945-2caba252f4dc // indirect
+)
 
 require (
 	atomicgo.dev/cursor v0.2.0 // indirect

@@ -2,6 +2,7 @@ package config
 
 import (
 	"os"
+	"time"
 
 	"gopkg.in/yaml.v3"
 )
@@ -11,6 +12,18 @@ type Config struct {
 	Repos    []Remote `yaml:"repos,omitempty"`
 	Orgs     []Remote `yaml:"orgs,omitempty"`
 	Reports  []Report `yaml:"reports,omitempty"`
+	Send     Send     `yaml:"send,omitempty"`
+}
+
+type Send struct {
+	ServerAddress string         `yaml:"serverAddress"`
+	ServerPort    int            `yaml:"serverPort"`
+	Username      string         `yaml:"username"`
+	Password      string         `yaml:"password"`
+	Delay         *time.Duration `yaml:"delay,omitempty"`
+	Subject       string         `yaml:"subject"`
+	HTMLBodyPath  string         `yaml:"htmlBodyPath,omitempty"`
+	From          string         `yaml:"from"`
 }
 
 type Remote struct {
@@ -24,6 +37,7 @@ type Remote struct {
 
 type Report struct {
 	Signatures  []Signature       `yaml:"signatures,omitempty"`
+	Email       string            `yaml:"email,omitempty"`
 	OutputDir   string            `yaml:"outputDir,omitempty"`
 	ExtraFields map[string]string `yaml:"extraFields,omitempty"`
 }

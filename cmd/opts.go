@@ -30,6 +30,14 @@ type composeActionOpts struct {
 	ci     bool
 }
 
+type sendActionOpts struct {
+	*Options
+
+	config          string
+	reportTimestamp cli.Timestamp
+	ci              bool
+}
+
 type genActionOpts struct {
 	*Options
 
