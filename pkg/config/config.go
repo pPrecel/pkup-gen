@@ -11,6 +11,7 @@ type Config struct {
 	// path to the report template
 	Template string `yaml:"template"`
 	// repos based on which report will be generated ( with name in format <ORG>/<REPO> )
+	// can override orgs config for a specific repo
 	Repos []Remote `yaml:"repos,omitempty"`
 	// orgs based on which report will be generated ( with name in format <ORG> )
 	Orgs []Remote `yaml:"orgs,omitempty"`

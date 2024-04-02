@@ -12,7 +12,8 @@ This scenario shows how to generate `.diff` files for a few repositories for the
 
 2. Because PAT is not provided, `pkup-gen` tries to connect to the GitHub app to create one - here follow the instructions in the `WARN` log:
 
-    ![1]On the GitHub side you have to pass the copied code, click `Continue` and then `Authorize pkup-gen`:
+    ![1](../../assets/screenshot-simple-flow-1.png)
+    On the GitHub side, you have to pass the copied code, click `Continue` and then `Authorize pkup-gen`:
     ![2](../../assets/screenshot-simple-flow-2.png)
     ![3](../../assets/screenshot-simple-flow-3.png)
 
