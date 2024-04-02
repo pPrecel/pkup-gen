@@ -237,11 +237,18 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 		}
 	}
 
-	return compose.New(ctx.Context, opts.Log).ForConfig(buildConfigFromOpts(opts), compose.Options{
+	err := compose.New(ctx.Context, opts.Log).ForConfig(buildConfigFromOpts(opts), compose.Options{
 		Since: *opts.since.Value(),
 		Until: *opts.until.Value(),
 		Ci:    opts.ci,
 	})
+	if err != nil {
+		return err
+	}
+
+	opts.Log.Info("all files saved to dir", opts.Log.Args("dir", opts.outputDir))
+
+	return nil
 }
 
 func buildConfigFromOpts(opts *genActionOpts) *config.Config {
