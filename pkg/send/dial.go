@@ -14,7 +14,7 @@ func NewDialer(logger *pterm.Logger, address string, port int, username, passwor
 	d := mail.NewDialer(address, port, username, password)
 	d.StartTLSPolicy = mail.MandatoryStartTLS
 
-	logger.Trace("dialing to server", logger.Args("address", address, "port", port, "username", username))
+	logger.Trace("dialing to server", logger.Args("address", address, "port", port, "username", username, "isPassword", password != ""))
 	sendCloser, err := d.Dial()
 	d.DialAndSend()
 	if err != nil {

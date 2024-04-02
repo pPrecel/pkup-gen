@@ -55,9 +55,9 @@ func (s *sender) ForConfig(config *config.Config, zipSuffix string) error {
 			return err
 		}
 
-		if config.Send.Delay != nil && i < len(config.Reports)-1 {
-			s.logger.Debug("waiting...", s.logger.Args("delay", config.Send.Delay.String()))
-			time.Sleep(*config.Send.Delay)
+		if config.Send.BetweenDialDelay != nil && i < len(config.Reports)-1 {
+			s.logger.Debug("waiting...", s.logger.Args("delay", config.Send.BetweenDialDelay.String()))
+			time.Sleep(*config.Send.BetweenDialDelay)
 		}
 	}
 

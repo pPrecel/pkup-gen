@@ -8,42 +8,83 @@ import (
 )
 
 type Config struct {
-	Template string   `yaml:"template"`
-	Repos    []Remote `yaml:"repos,omitempty"`
-	Orgs     []Remote `yaml:"orgs,omitempty"`
-	Reports  []Report `yaml:"reports,omitempty"`
-	Send     Send     `yaml:"send,omitempty"`
+	// path to the report template
+	Template string `yaml:"template"`
+	// repos based on which report will be generated ( with name in format <ORG>/<REPO> )
+	Repos []Remote `yaml:"repos,omitempty"`
+	// orgs based on which report will be generated ( with name in format <ORG> )
+	Orgs []Remote `yaml:"orgs,omitempty"`
+	// info about output reports
+	Reports []Report `yaml:"reports,omitempty"`
+	// info about email server used to send emails
+	Send Send `yaml:"send,omitempty"`
 }
 
 type Send struct {
-	ServerAddress string         `yaml:"serverAddress"`
-	ServerPort    int            `yaml:"serverPort"`
-	Username      string         `yaml:"username"`
-	Password      string         `yaml:"password"`
-	Delay         *time.Duration `yaml:"delay,omitempty"`
-	Subject       string         `yaml:"subject"`
-	HTMLBodyPath  string         `yaml:"htmlBodyPath,omitempty"`
-	From          string         `yaml:"from"`
+	// email server address
+	// e.g.: "smtp-mail.outlook.com"
+	ServerAddress string `yaml:"serverAddress"`
+	// email server port
+	// e.g.: 587
+	ServerPort int `yaml:"serverPort"`
+	// email server username
+	// e.g.: filip.strozik@outlook.com
+	Username string `yaml:"username"`
+	// email server password
+	// e.g.: testpassword
+	Password string `yaml:"password"`
+	// how many emails should be send on single dial
+	// e.g.: 30
+	PerDial int `yaml:"perDial,omitempty"`
+	// delay between dials
+	// e.g.: 1s
+	BetweenDialDelay *time.Duration `yaml:"betweenDialDelay,omitempty"`
+	// message subject
+	// e.g.: "PKUP report"
+	Subject string `yaml:"subject"`
+	// message body html template path
+	// e.g.: template.html
+	HTMLBodyPath string `yaml:"htmlBodyPath,omitempty"`
+	// message author
+	// e.g.: filip.strozik@outlook.com
+	From string `yaml:"from"`
 }
 
 type Remote struct {
-	Name          string   `yaml:"name"`
-	Token         string   `yaml:"token,omitempty"`
-	EnterpriseUrl string   `yaml:"enterpriseUrl,omitempty"`
-	Branches      []string `yaml:"branches,omitempty"`
-	AllBranches   bool     `yaml:"allBranches"`
-	UniqueOnly    bool     `yaml:"uniqueOnly"`
+	// name of the remot ( in format <ORG> for orgs or <ORG>/<REPO> for repos )
+	// e.g.: "kyma-project" or "kyma-project/serverless"
+	Name string `yaml:"name"`
+	// token used to communicate with the GitHub API
+	Token string `yaml:"token,omitempty"`
+	// enterprise GitHub API address ( default: use opensource GitHub API address )
+	EnterpriseUrl string `yaml:"enterpriseUrl,omitempty"`
+	// specific branches used to fetch commits from ( default: use repo HEAD branch )
+	Branches []string `yaml:"branches,omitempty"`
+	// fetch commits from all branches instead of HEAD branch ( default: false )
+	AllBranches bool `yaml:"allBranches"`
+	// fetch only unique commits ( default: false )
+	// mostly useful in case the Branches or AllBranches variable is set
+	UniqueOnly bool `yaml:"uniqueOnly"`
 }
 
 type Report struct {
-	Signatures  []Signature       `yaml:"signatures,omitempty"`
-	Email       string            `yaml:"email,omitempty"`
-	OutputDir   string            `yaml:"outputDir,omitempty"`
+	// set of GitHub usernames that report will be based on
+	Signatures []Signature `yaml:"signatures,omitempty"`
+	// report owner's email address used to send mail
+	Email string `yaml:"email,omitempty"`
+	// output dir where report will be generated
+	OutputDir string `yaml:"outputDir,omitempty"`
+	// extra fields that will be replaces in the template report
+	// e.g.: pkupGenEmployeesName: "Filip Strózik"
 	ExtraFields map[string]string `yaml:"extraFields,omitempty"`
 }
 
 type Signature struct {
-	Username      string `yaml:"username"`
+	// GitHub username
+	Username string `yaml:"username"`
+	// enterprise GitHub API address of correlated Remote
+	// if empty uses username for all remotes with no EnterpriseUrl set
+	// if not empty uses username for all remotes with the same EnterpriseUrl
 	EnterpriseUrl string `yaml:"enterpriseUrl,omitempty"`
 }
 
