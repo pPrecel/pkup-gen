@@ -31,9 +31,13 @@ type Send struct {
 	// e.g.: filip.strozik@outlook.com
 	Username string `yaml:"username"`
 	// email server password
+	// how to create application password for outlook:
+	// https://support.microsoft.com/en-us/account-billing/using-app-passwords-with-apps-that-don-t-support-two-step-verification-5896ed9b-4263-e681-128a-a6f2979a7944
 	// e.g.: testpassword
 	Password string `yaml:"password"`
 	// how many emails should be send on single dial
+	// may be useful to cover email server limitations:
+	// https://learn.microsoft.com/en-us/exchange/troubleshoot/send-emails/smtp-submission-improvements#new-throttling-limit-for-concurrent-connections-that-submit-messages
 	// e.g.: 30
 	PerDial int `yaml:"perDial,omitempty"`
 	// delay between dials
