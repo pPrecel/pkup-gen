@@ -34,6 +34,11 @@ func (s *sender) ForConfig(config *config.Config, zipSuffix string) error {
 		body = string(bodyBytes)
 	}
 
+	if config.Send.PerDial == 0 {
+		// send at least one message before delay
+		config.Send.PerDial = 1
+	}
+
 	dialer, err := NewDialer(s.logger, config.Send.ServerAddress, config.Send.ServerPort, config.Send.Username, config.Send.Password)
 	if err != nil {
 		return err
@@ -42,22 +47,40 @@ func (s *sender) ForConfig(config *config.Config, zipSuffix string) error {
 
 	zipper := NewZipper(s.logger)
 
-	for i, report := range config.Reports {
-		s.logger.Debug("zipping report", s.logger.Args("dir", report.OutputDir, "suffix", zipSuffix))
-		reportFile, err := zipper.Do(report.OutputDir, zipSuffix)
+	var j int
+	for i := 0; i < len(config.Reports); i += config.Send.PerDial {
+		j += config.Send.PerDial
+		if j > len(config.Reports) {
+			j = len(config.Reports)
+		}
+
+		messages := make([]*message, j-i)
+		for iter, report := range config.Reports[i:j] {
+			s.logger.Debug("zipping report", s.logger.Args("dir", report.OutputDir, "suffix", zipSuffix))
+			reportFile, err := zipper.Do(report.OutputDir, zipSuffix)
+			if err != nil {
+				return err
+			}
+
+			s.logger.Info("building email message", s.logger.Args("from", config.Send.From, "to", report.Email, "attachmentPath", reportFile))
+			messages[iter] = &message{
+				from:           config.Send.From,
+				to:             report.Email,
+				subject:        config.Send.Subject,
+				body:           body,
+				attachmentPath: reportFile,
+			}
+		}
+
+		s.logger.Info("sending built messages", s.logger.Args("len", len(messages)))
+		err = dialer.SendMail(messages...)
 		if err != nil {
 			return err
 		}
 
-		s.logger.Info("sending report", s.logger.Args("from", config.Send.From, "to", report.Email, "attachmentPath", reportFile))
-		err = dialer.SendMail(config.Send.From, config.Send.Subject, report.Email, body, reportFile)
-		if err != nil {
-			return err
-		}
-
-		if config.Send.BetweenDialDelay != nil && i < len(config.Reports)-1 {
-			s.logger.Debug("waiting...", s.logger.Args("delay", config.Send.BetweenDialDelay.String()))
-			time.Sleep(*config.Send.BetweenDialDelay)
+		if i+config.Send.PerDial < len(config.Reports) {
+			s.logger.Debug("waiting...", s.logger.Args("delay", config.Send.DialDelay.String()))
+			time.Sleep(config.Send.DialDelay)
 		}
 	}
 

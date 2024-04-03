@@ -32,13 +32,26 @@ func (d *dialer) Close() {
 	d.sender.Close()
 }
 
-func (d *dialer) SendMail(from, subject, destination, body, attachmentPath string) error {
-	message := mail.NewMessage()
-	message.SetHeader("From", from)
-	message.SetHeader("To", destination)
-	message.SetHeader("Subject", subject)
-	message.SetBody("text/html", body)
-	message.Attach(attachmentPath)
+type message struct {
+	from           string
+	to             string
+	subject        string
+	body           string
+	attachmentPath string
+}
 
-	return mail.Send(d.sender, message)
+func (d *dialer) SendMail(messages ...*message) error {
+	mailMessages := make([]*mail.Message, len(messages))
+	for i, m := range messages {
+		mailMessage := mail.NewMessage()
+		mailMessage.SetHeader("From", m.from)
+		mailMessage.SetHeader("To", m.to)
+		mailMessage.SetHeader("Subject", m.subject)
+		mailMessage.SetBody("text/html", m.body)
+		mailMessage.Attach(m.attachmentPath)
+
+		mailMessages[i] = mailMessage
+	}
+
+	return mail.Send(d.sender, mailMessages...)
 }
