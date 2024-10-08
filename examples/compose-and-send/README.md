@@ -43,14 +43,16 @@ This scenario describes how to generate many reports for given repositories and 
       uniqueOnly: true
     
     send:
-      serverAddress: "smtp-mail.outlook.com"
+      serverAddress: "smtp.gmail.com"
       serverPort: 587
-      username: "filip.strozik@outlook.com"
-      password: *************
+      username: "pkup.gen@gmail.com"
+      password: my_app_password
       subject: "PKUP report"
       htmlBodyPath: "templates/email_body_template.html"
-      from: filip.strozik@outlook.com
+      from: pkup.gen@gmail.com
     ```
+
+  > **NOTE:** the `send` field supports only basic auth. This means that for more complex usecases use email-bridge (like [protonmail-bridge](https://proton.me/mail/bridge)) or choose an Gmail service provider that supports basic authentication. For example, gmail can be used but you have to generate an [app password](https://support.google.com/accounts/answer/185833?hl=en) first and be consistent with it's [limitations](https://support.google.com/a/answer/166852?hl=en).
 
 2. Compose report ( example output ):
 
