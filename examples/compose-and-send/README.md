@@ -53,6 +53,7 @@ This scenario describes how to generate many reports for given repositories and 
     ```
 
   > **NOTE:** the `send` field supports only basic auth. This means that for more complex usecases use email-bridge (like [protonmail-bridge](https://proton.me/mail/bridge)) or choose an Gmail service provider that supports basic authentication. For example, gmail can be used but you have to generate an [app password](https://support.google.com/accounts/answer/185833?hl=en) first and be consistent with it's [limitations](https://support.google.com/a/answer/166852?hl=en).
+  > **NOTE**: outlook get rid of support for basic auth for daemon applications ([read more](https://answers.microsoft.com/en-us/outlook_com/forum/all/getting-an-auth-error-i-need-help/b26708fd-14a9-41d5-902d-13a986e9c77c)).
 
 2. Compose report ( example output ):
 
