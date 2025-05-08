@@ -23,7 +23,7 @@ jobs:
         name: GoReleaser
         uses: goreleaser/goreleaser-action@v2.7.0
         with:
-          args: release --rm-dist
+          args: release
         env:
           GITHUB_REF_NAME: ${{ env.GIT_REF }}
           GITHUB_TOKEN: ${{ secrets.GORELEASER_GITHUB_TOKEN }}
