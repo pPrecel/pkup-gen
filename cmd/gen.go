@@ -269,12 +269,14 @@ func buildConfigFromOpts(opts *genActionOpts) *config.Config {
 	}
 
 	for _, org := range opts.orgs {
-		cfg.Orgs = append(cfg.Orgs, config.Remote{
-			Name:          org,
-			Token:         opts.token,
-			EnterpriseUrl: opts.enterpriseURL,
-			AllBranches:   opts.allBranches,
-			UniqueOnly:    opts.uniqueOnly,
+		cfg.Orgs = append(cfg.Orgs, config.Org{
+			Remote: config.Remote{
+				Name:          org,
+				Token:         opts.token,
+				EnterpriseUrl: opts.enterpriseURL,
+				AllBranches:   opts.allBranches,
+				UniqueOnly:    opts.uniqueOnly,
+			},
 		})
 	}
 

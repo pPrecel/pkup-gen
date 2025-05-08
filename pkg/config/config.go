@@ -14,7 +14,7 @@ type Config struct {
 	// can override orgs config for a specific repo
 	Repos []Remote `yaml:"repos,omitempty"`
 	// orgs based on which report will be generated ( with name in format <ORG> )
-	Orgs []Remote `yaml:"orgs,omitempty"`
+	Orgs []Org `yaml:"orgs,omitempty"`
 	// info about output reports
 	Reports []Report `yaml:"reports,omitempty"`
 	// info about email server used to send emails
@@ -53,6 +53,13 @@ type Send struct {
 	// message author
 	// e.g.: filip.strozik@outlook.com
 	From string `yaml:"from"`
+}
+
+type Org struct {
+	Remote `yaml:",inline"`
+
+	// list of repos that should be ignored
+	IgnoreRepos []string `yaml:"ignoreRepos,omitempty"`
 }
 
 type Remote struct {

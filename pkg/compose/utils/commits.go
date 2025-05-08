@@ -121,6 +121,13 @@ func (ll *lazyRepoCommitsLister) listOrgRepos(remoteClients *RemoteClients, cfg 
 
 			if containsOrgRepo(cfg.Repos, name) {
 				// skip if repo already is in config.Repos
+				ll.logger.Debug("skipping dupplicated repo", ll.logger.Args("repo", name))
+				continue
+			}
+
+			if arrayContainsOrgRepo(org.IgnoreRepos, repo) {
+				// skip if repo is in ignore list
+				ll.logger.Debug("skipping repo from ignoreRepos list", ll.logger.Args("repo", name))
 				continue
 			}
 
@@ -158,6 +165,16 @@ func (ll *lazyRepoCommitsLister) listOrgRepos(remoteClients *RemoteClients, cfg 
 func containsOrgRepo(remotes []config.Remote, orgRepo string) bool {
 	for _, remote := range remotes {
 		if remote.Name == orgRepo {
+			return true
+		}
+	}
+
+	return false
+}
+
+func arrayContainsOrgRepo(a []string, orgRepo string) bool {
+	for _, repo := range a {
+		if repo == orgRepo {
 			return true
 		}
 	}

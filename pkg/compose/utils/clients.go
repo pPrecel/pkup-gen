@@ -27,7 +27,7 @@ type BuildClientFunc func(context.Context, *pterm.Logger, github.ClientOpts) (gi
 func BuildClients(ctx context.Context, logger *pterm.Logger, config *config.Config, buildClient BuildClientFunc) (*RemoteClients, error) {
 	remoteClients := &RemoteClients{}
 
-	err := appendRemoteClients(remoteClients, ctx, logger, config.Orgs, buildClient)
+	err := appendRemoteClients(remoteClients, ctx, logger, orgsToRemotes(config.Orgs), buildClient)
 	if err != nil {
 		return nil, err
 	}
@@ -58,4 +58,13 @@ func appendRemoteClients(dest *RemoteClients, ctx context.Context, logger *pterm
 	}
 
 	return nil
+}
+
+func orgsToRemotes(orgs []config.Org) []config.Remote {
+	remotes := make([]config.Remote, len(orgs))
+	for i := range orgs {
+		remotes[i] = orgs[i].Remote
+	}
+
+	return remotes
 }
