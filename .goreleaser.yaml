@@ -43,7 +43,7 @@ brews:
     description: "Simple tool to generate PKUP artifacts."
     repository:
       owner: pPrecel
-      name: homebrew-tapg
+      name: homebrew-tap
     goarm: "7"
     commit_msg_template: "Brew formula update for {{ .ProjectName }} version {{ .Tag }}"
     directory: Formula
