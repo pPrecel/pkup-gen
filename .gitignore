@@ -9,3 +9,5 @@ examples/with-template/report/
 # development
 reports/
 templates/
+# Added by goreleaser init:
+dist/
