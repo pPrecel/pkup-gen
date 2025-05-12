@@ -155,7 +155,7 @@ func Test_gh_client_ListRepoCommits(t *testing.T) {
 			w.Header().Set("X-RateLimit-Remaining", "0") //fmt.Sprintf("%d", time.Now().Unix()))
 			w.Header().Set("X-RateLimit-Reset", "22")
 			w.WriteHeader(403)
-			w.Write([]byte(`{"message":"API rate limit exceeded"}`))
+			_, _ = w.Write([]byte(`{"message":"API rate limit exceeded"}`))
 			callsIter++
 		}))
 		defer server.Close()

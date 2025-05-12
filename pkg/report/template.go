@@ -44,13 +44,13 @@ func (tr *templateRenderer) RenderToFile(dir, filename string, values Values) er
 	}
 
 	docx1 := r.Editable()
-	docx1.Replace(DocxPeriodFromTmpl, values.PeriodFrom, -1)
-	docx1.Replace(DocxPeriodTillTmpl, values.PeriodTill, -1)
-	docx1.Replace(DocxApprovalDateTmpl, values.ApprovalDate, -1)
-	docx1.Replace(DocxResultsTmpl, resultString, -1)
+	_ = docx1.Replace(DocxPeriodFromTmpl, values.PeriodFrom, -1)
+	_ = docx1.Replace(DocxPeriodTillTmpl, values.PeriodTill, -1)
+	_ = docx1.Replace(DocxApprovalDateTmpl, values.ApprovalDate, -1)
+	_ = docx1.Replace(DocxResultsTmpl, resultString, -1)
 
 	for tmpl, val := range values.CustomValues {
-		docx1.Replace(tmpl, val, -1)
+		_ = docx1.Replace(tmpl, val, -1)
 	}
 
 	return docx1.WriteToFile(path.Join(dir, filename))

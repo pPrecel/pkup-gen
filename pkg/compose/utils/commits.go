@@ -82,7 +82,7 @@ func (ll *lazyRepoCommitsLister) List(config *config.Config, since, until time.T
 			})
 			if listErr != nil {
 				ll.logger.Warn("failed to list commits", ll.logger.Args("org", orgName, "repo", repoName, "error", listErr.Error()))
-				multierror.Append(err, listErr)
+				err = multierror.Append(err, listErr)
 				return
 			}
 

@@ -49,7 +49,7 @@ func Test_tokenGetter_newTokenFlow(t *testing.T) {
 	t.Run("create new token", func(t *testing.T) {
 		testServiceName := randString()
 		testUsername := randString()
-		defer keyring.Delete(testServiceName, testUsername)
+		defer func() { _ = keyring.Delete(testServiceName, testUsername) }()
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Add("Content-Type", "application/json")
@@ -86,7 +86,7 @@ func Test_tokenGetter_newTokenFlow(t *testing.T) {
 	t.Run("/login/device/code error", func(t *testing.T) {
 		testServiceName := randString()
 		testUsername := randString()
-		defer keyring.Delete(testServiceName, testUsername)
+		defer func() { _ = keyring.Delete(testServiceName, testUsername) }()
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
 			w.WriteHeader(404)
@@ -113,7 +113,7 @@ func Test_tokenGetter_newTokenFlow(t *testing.T) {
 	t.Run("create new token", func(t *testing.T) {
 		testServiceName := randString()
 		testUsername := randString()
-		defer keyring.Delete(testServiceName, testUsername)
+		defer func() { _ = keyring.Delete(testServiceName, testUsername) }()
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Path {
@@ -151,8 +151,8 @@ func Test_tokenGetter_tokenFromKeyringFlow(t *testing.T) {
 	t.Run("get proper token from cache", func(t *testing.T) {
 		testServiceName := randString()
 		testUsername := randString()
-		keyring.Set(testServiceName, testUsername, "test-token")
-		defer keyring.Delete(testServiceName, testUsername)
+		_ = keyring.Set(testServiceName, testUsername, "test-token")
+		defer func() { _ = keyring.Delete(testServiceName, testUsername) }()
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(200)
@@ -188,8 +188,8 @@ func Test_tokenGetter_tokenFromKeyringFlow(t *testing.T) {
 	t.Run("stored token is not valid and request for new one", func(t *testing.T) {
 		testServiceName := randString()
 		testUsername := randString()
-		keyring.Set(testServiceName, testUsername, "test-token")
-		defer keyring.Delete(testServiceName, testUsername)
+		_ = keyring.Set(testServiceName, testUsername, "test-token")
+		defer func() { _ = keyring.Delete(testServiceName, testUsername) }()
 
 		testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			switch r.URL.Path {

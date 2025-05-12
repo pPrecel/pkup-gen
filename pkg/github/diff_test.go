@@ -69,7 +69,7 @@ func handleTestRequest(t *testing.T, args *testServerArgs) func(w http.ResponseW
 	return func(w http.ResponseWriter, r *http.Request) {
 		// diff
 		if strings.Contains(r.URL.String(), "/commits/") {
-			w.Write([]byte(diffMessage))
+			_, _ = w.Write([]byte(diffMessage))
 			return
 		}
 
@@ -77,7 +77,7 @@ func handleTestRequest(t *testing.T, args *testServerArgs) func(w http.ResponseW
 		if strings.Contains(r.URL.String(), "/commits") {
 			bytes, err := json.Marshal(args.commits)
 			require.NoError(t, err)
-			w.Write(bytes)
+			_, _ = w.Write(bytes)
 			return
 		}
 
@@ -85,7 +85,7 @@ func handleTestRequest(t *testing.T, args *testServerArgs) func(w http.ResponseW
 		if strings.Contains(r.URL.String(), "/branches") {
 			bytes, err := json.Marshal(args.branches)
 			require.NoError(t, err)
-			w.Write(bytes)
+			_, _ = w.Write(bytes)
 			return
 		}
 
@@ -93,7 +93,7 @@ func handleTestRequest(t *testing.T, args *testServerArgs) func(w http.ResponseW
 		if strings.Contains(r.URL.String(), "/repos") {
 			bytes, err := json.Marshal(args.repos)
 			require.NoError(t, err)
-			w.Write(bytes)
+			_, _ = w.Write(bytes)
 			return
 		}
 	}

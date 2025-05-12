@@ -35,7 +35,6 @@ type sendActionOpts struct {
 
 	config          string
 	reportTimestamp cli.Timestamp
-	ci              bool
 }
 
 type genActionOpts struct {

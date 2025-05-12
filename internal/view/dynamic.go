@@ -41,7 +41,7 @@ func (mtv *dynamicMultiView) NewWriter() io.Writer {
 	w := mtv.multiPrinter.NewWriter()
 
 	// write anything to avoid problems with empty buffer on the pterm side
-	w.Write([]byte{0})
+	_, _ = w.Write([]byte{0})
 
 	return w
 }
@@ -59,7 +59,11 @@ func (mtv *dynamicMultiView) Run() error {
 		return err
 	}
 
-	mtv.multiPrinter.Start()
+	_, err = mtv.multiPrinter.Start()
+	if err != nil {
+		return err
+	}
+
 	for len(workingSpinners) > 0 {
 		for name, channels := range mtv.tasks {
 			if selectChannelsForSpinners(workingSpinners, name, channels) {
@@ -68,8 +72,8 @@ func (mtv *dynamicMultiView) Run() error {
 		}
 	}
 
-	mtv.multiPrinter.Stop()
-	return nil
+	_, err = mtv.multiPrinter.Stop()
+	return err
 }
 
 func selectChannelsForSpinners(workingSpinners map[string]*pterm.SpinnerPrinter, taskName string, channels taskChannels) bool {
