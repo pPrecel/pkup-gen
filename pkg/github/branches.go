@@ -13,7 +13,7 @@ type BranchList struct {
 
 func (gh *gh_client) ListRepoBranches(org, repo string) (*BranchList, error) {
 	branchList := &BranchList{}
-	err := listForPages(listBranchesForPage(gh.ctx, gh.client, branchList, org, repo))
+	err := gh.listForPages(listBranchesForPage(gh.ctx, gh.client, branchList, org, repo))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list branches for repo '%s/%s': %s", org, repo, err.Error())
 	}

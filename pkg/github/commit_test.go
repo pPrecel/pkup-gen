@@ -2,6 +2,8 @@ package github
 
 import (
 	"context"
+	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -115,6 +117,47 @@ func Test_gh_client_ListRepoCommits(t *testing.T) {
 				testVerifiedCommit...,
 			),
 		})
+		defer server.Close()
+
+		gh := gh_client{
+			ctx:    context.Background(),
+			log:    fixLogger(),
+			client: fixTestClient(t, server),
+		}
+
+		commitList, err := gh.ListRepoCommits(ListRepoCommitsOpts{
+			Org:      "test-org",
+			Repo:     "test-repo",
+			Branches: []string{"main"},
+			Authors:  []string{"test-name", "test-login"},
+			Since:    time.Time{},
+			Until:    time.Time{},
+		})
+
+		require.NoError(t, err)
+		require.NotNil(t, commitList)
+		require.ElementsMatch(t, append(testCommits, testVerifiedCommit...), commitList.Commits)
+	})
+
+	t.Run("wait until rate limits end", func(t *testing.T) {
+		callsIter := 0
+		server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			if callsIter > 3 {
+				handleTestRequest(t, &testServerArgs{
+					commits: append(
+						append(testCommits, testWrongCommits...),
+						testVerifiedCommit...,
+					),
+				})(w, r)
+
+				return
+			}
+			w.Header().Set("X-RateLimit-Remaining", "0") //fmt.Sprintf("%d", time.Now().Unix()))
+			w.Header().Set("X-RateLimit-Reset", "22")
+			w.WriteHeader(403)
+			w.Write([]byte(`{"message":"API rate limit exceeded"}`))
+			callsIter++
+		}))
 		defer server.Close()
 
 		gh := gh_client{

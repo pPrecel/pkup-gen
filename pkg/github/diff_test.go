@@ -62,7 +62,11 @@ type testServerArgs struct {
 }
 
 func fixTestServer(t *testing.T, args *testServerArgs) *httptest.Server {
-	return httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	return httptest.NewServer(http.HandlerFunc(handleTestRequest(t, args)))
+}
+
+func handleTestRequest(t *testing.T, args *testServerArgs) func(w http.ResponseWriter, r *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
 		// diff
 		if strings.Contains(r.URL.String(), "/commits/") {
 			w.Write([]byte(diffMessage))
@@ -92,5 +96,5 @@ func fixTestServer(t *testing.T, args *testServerArgs) *httptest.Server {
 			w.Write(bytes)
 			return
 		}
-	}))
+	}
 }

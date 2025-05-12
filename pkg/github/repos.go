@@ -16,7 +16,7 @@ func (gh *gh_client) ListRepos(org string) ([]string, error) {
 		repos: []*go_github.Repository{},
 	}
 
-	err := listForPages(listReposPageFunc(gh.ctx, gh.client, repoList, org))
+	err := gh.listForPages(listReposPageFunc(gh.ctx, gh.client, repoList, org))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list branches for org '%s': %s", org, err)
 	}
