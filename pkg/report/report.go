@@ -18,7 +18,7 @@ type Result struct {
 	Org  string
 	Repo string
 	// URL        string
-	CommitList *github.CommitList
+	CommitList github.CommitList
 }
 
 type Options struct {

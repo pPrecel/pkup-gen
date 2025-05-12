@@ -2,6 +2,7 @@ package github
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/go-github/v53/github"
 	"github.com/pterm/pterm"
@@ -53,4 +54,52 @@ func NewClient(ctx context.Context, logger *pterm.Logger, opts ClientOpts) (Clie
 		log:    logger,
 		client: client,
 	}, nil
+}
+
+func (gh *gh_client) callWithRateLimitRetry(fn func() error) error {
+	for i := 0; i < 5; i++ {
+		err := fn()
+		if isRateLimitErr(err) {
+			// rate limit reached
+			// wait for the reset time
+			// https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28
+			d := getRateLimitResetDuration(err)
+			gh.log.Warn("Rate limit exceeded, waiting", gh.log.Args("duration", d, "error", err.Error()))
+			time.Sleep(d)
+			continue
+		}
+
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func isRateLimitErr(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	switch e := err.(type) {
+	case *github.ErrorResponse:
+		// common error response when reaching the same endpoint too many times
+		return e.Response.StatusCode == 403
+	case *github.RateLimitError:
+		// specific error response when reaching the rate limit
+		return true
+	default:
+		return false
+	}
+}
+
+func getRateLimitResetDuration(err error) time.Duration {
+	switch e := err.(type) {
+	case *github.RateLimitError:
+		return time.Until(e.Rate.Reset.Time)
+	default:
+		// default to 1 minute if we can't determine the reset time
+		return time.Minute
+	}
 }

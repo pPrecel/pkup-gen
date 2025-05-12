@@ -149,7 +149,7 @@ func (c *compose) composeForUser(remoteClients *utils.RemoteClients, user *confi
 					Org:  repo.Org,
 					Repo: repo.Repo,
 					// URL:        url,
-					CommitList: &userCommits,
+					CommitList: userCommits,
 				})
 			}
 

@@ -1,7 +1,6 @@
 package github
 
 import (
-	"context"
 	"fmt"
 
 	go_github "github.com/google/go-github/v53/github"
@@ -16,7 +15,7 @@ func (gh *gh_client) ListRepos(org string) ([]string, error) {
 		repos: []*go_github.Repository{},
 	}
 
-	err := gh.listForPages(listReposPageFunc(gh.ctx, gh.client, repoList, org))
+	err := listForPages(gh.listReposPageFunc(repoList, org))
 	if err != nil {
 		return nil, fmt.Errorf("failed to list branches for org '%s': %s", org, err)
 	}
@@ -29,14 +28,19 @@ func (gh *gh_client) ListRepos(org string) ([]string, error) {
 	return repos, nil
 }
 
-func listReposPageFunc(ctx context.Context, client *go_github.Client, dest *repoList, org string) pageListFunc {
+func (gh *gh_client) listReposPageFunc(dest *repoList, org string) pageListFunc {
 	return func(page int) (bool, error) {
 		perPage := 100
-		repos, _, err := client.Repositories.ListByOrg(ctx, org, &go_github.RepositoryListByOrgOptions{
-			ListOptions: go_github.ListOptions{
-				Page:    page,
-				PerPage: perPage,
-			},
+		var repos []*go_github.Repository
+		var err error
+		err = gh.callWithRateLimitRetry(func() error {
+			repos, _, err = gh.client.Repositories.ListByOrg(gh.ctx, org, &go_github.RepositoryListByOrgOptions{
+				ListOptions: go_github.ListOptions{
+					Page:    page,
+					PerPage: perPage,
+				},
+			})
+			return err
 		})
 		if err != nil {
 			return false, err

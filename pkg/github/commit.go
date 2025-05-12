@@ -1,7 +1,6 @@
 package github
 
 import (
-	"context"
 	"fmt"
 	"strings"
 	"time"
@@ -39,7 +38,7 @@ func (gh *gh_client) ListRepoCommits(opts ListRepoCommitsOpts) (*CommitList, err
 
 	for _, branch := range opts.Branches {
 		// get all repo commits in given period
-		err := gh.listForPages(listCommitsPageFunc(gh.ctx, gh.client, commits, listForPageOpts{
+		err := listForPages(gh.listCommitsPageFunc(commits, listForPageOpts{
 			org:    opts.Org,
 			repo:   opts.Repo,
 			branch: branch,
@@ -90,21 +89,27 @@ type listForPageOpts struct {
 	until  time.Time
 }
 
-func listCommitsPageFunc(ctx context.Context, client *go_github.Client, dest *CommitList, opts listForPageOpts) pageListFunc {
+func (gh *gh_client) listCommitsPageFunc(dest *CommitList, opts listForPageOpts) pageListFunc {
 	return func(page int) (bool, error) {
 		perPage := 100
-		commits, resp, listErr := client.Repositories.ListCommits(ctx, opts.org, opts.repo, &go_github.CommitsListOptions{
-			SHA:   opts.branch,
-			Since: opts.since,
-			Until: opts.until,
-			ListOptions: go_github.ListOptions{
-				Page:    page,
-				PerPage: perPage,
-			},
+		var commits []*go_github.RepositoryCommit
+		var resp *go_github.Response
+		var err error
+		err = gh.callWithRateLimitRetry(func() error {
+			commits, resp, err = gh.client.Repositories.ListCommits(gh.ctx, opts.org, opts.repo, &go_github.CommitsListOptions{
+				SHA:   opts.branch,
+				Since: opts.since,
+				Until: opts.until,
+				ListOptions: go_github.ListOptions{
+					Page:    page,
+					PerPage: perPage,
+				},
+			})
+			return err
 		})
 		// return error only when statusCode is not 409 (repo is empty)
-		if listErr != nil && resp.StatusCode != 409 {
-			return false, listErr
+		if err != nil && resp.StatusCode != 409 {
+			return false, err
 		}
 
 		dest.Commits = append(dest.Commits, commits...)
@@ -200,12 +205,12 @@ func isInCommits(where []*go_github.RepositoryCommit, what *go_github.Repository
 
 type pageListFunc func(page int) (nextPage bool, err error)
 
-func (gh *gh_client) listForPages(fn pageListFunc) error {
+func listForPages(fn pageListFunc) error {
 	page := 1
 	nextPage := true
 	for nextPage {
 		var err error
-		nextPage, err = gh.execListFuncWithRetry(fn, page)
+		nextPage, err = fn(page)
 		if err != nil {
 			return err
 		}
@@ -214,57 +219,4 @@ func (gh *gh_client) listForPages(fn pageListFunc) error {
 	}
 
 	return nil
-}
-
-func (gh *gh_client) execListFuncWithRetry(fn pageListFunc, page int) (bool, error) {
-	var nextPage bool
-	var err error
-	for i := 0; i < 5; i++ {
-		nextPage, err = fn(page)
-		if err == nil {
-			break
-		}
-
-		if isRateLimitErr(err) {
-			// rate limit reached
-			// wait for the reset time
-			// https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28
-			d := getRateLimitResetDuration(err)
-			gh.log.Warn("Rate limit exceeded, waiting: %s", gh.log.Args("duration", d))
-			time.Sleep(d)
-			continue
-		}
-
-		// return any other error
-		return false, err
-	}
-
-	return nextPage, err
-}
-
-func isRateLimitErr(err error) bool {
-	if err == nil {
-		return false
-	}
-
-	switch e := err.(type) {
-	case *go_github.ErrorResponse:
-		// common error response when reaching the same endpoint too many times
-		return e.Response.StatusCode == 403
-	case *go_github.RateLimitError:
-		// specific error response when reaching the rate limit
-		return true
-	default:
-		return false
-	}
-}
-
-func getRateLimitResetDuration(err error) time.Duration {
-	switch e := err.(type) {
-	case *go_github.RateLimitError:
-		return time.Until(e.Rate.Reset.Time)
-	default:
-		// default to 1 minute if we can't determine the reset time
-		return time.Minute
-	}
 }
