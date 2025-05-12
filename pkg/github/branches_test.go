@@ -12,13 +12,13 @@ import (
 var (
 	testBranches = []*go_github.Branch{
 		{
-			Name: ptr.To[string]("main"),
+			Name: ptr.To("main"),
 		},
 		{
-			Name: ptr.To[string]("release-1"),
+			Name: ptr.To("release-1"),
 		},
 		{
-			Name: ptr.To[string]("release-2"),
+			Name: ptr.To("release-2"),
 		},
 	}
 

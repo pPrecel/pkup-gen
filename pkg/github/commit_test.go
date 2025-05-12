@@ -15,46 +15,46 @@ import (
 var (
 	testWrongCommits = []*go_github.RepositoryCommit{
 		{
-			SHA: ptr.To[string]("test-sha1"),
+			SHA: ptr.To("test-sha1"),
 			Author: &go_github.User{
-				Login: ptr.To[string]("test-wronglogin"),
+				Login: ptr.To("test-wronglogin"),
 			},
 		},
 		{
-			SHA: ptr.To[string]("test-sha2"),
+			SHA: ptr.To("test-sha2"),
 			Author: &go_github.User{
-				Name: ptr.To[string]("test-wrong-name"),
+				Name: ptr.To("test-wrong-name"),
 			},
 		},
 		{
-			SHA: ptr.To[string]("test-sha3"),
+			SHA: ptr.To("test-sha3"),
 			Commit: &go_github.Commit{
 				Author: &go_github.CommitAuthor{
-					Login: ptr.To[string]("test-wrong-login"),
+					Login: ptr.To("test-wrong-login"),
 				},
 			},
 		},
 		{
-			SHA: ptr.To[string]("test-sha4"),
+			SHA: ptr.To("test-sha4"),
 			Commit: &go_github.Commit{
 				Author: &go_github.CommitAuthor{
-					Name: ptr.To[string]("test-wrong-name"),
+					Name: ptr.To("test-wrong-name"),
 				},
 			},
 		},
 		{
 			Commit: &go_github.Commit{
 				Verification: &go_github.SignatureVerification{
-					Verified: ptr.To[bool](true),
-					Payload:  ptr.To[string]("\n\n\nauthor test-name-wrong <email>\n\n\n"),
+					Verified: ptr.To(true),
+					Payload:  ptr.To("\n\n\nauthor test-name-wrong <email>\n\n\n"),
 				},
 			},
 		},
 		{
 			Commit: &go_github.Commit{
 				Verification: &go_github.SignatureVerification{
-					Verified: ptr.To[bool](true),
-					Payload:  ptr.To[string]("\n\nCo-authored-by: test-name-wrong <email>\n"),
+					Verified: ptr.To(true),
+					Payload:  ptr.To("\n\nCo-authored-by: test-name-wrong <email>\n"),
 				},
 			},
 		},
@@ -63,46 +63,46 @@ var (
 		{
 			Commit: &go_github.Commit{
 				Verification: &go_github.SignatureVerification{
-					Verified: ptr.To[bool](true),
-					Payload:  ptr.To[string]("\n\n\nauthor test-name <email>\n\n\n"),
+					Verified: ptr.To(true),
+					Payload:  ptr.To("\n\n\nauthor test-name <email>\n\n\n"),
 				},
 			},
 		},
 		{
 			Commit: &go_github.Commit{
 				Verification: &go_github.SignatureVerification{
-					Verified: ptr.To[bool](true),
-					Payload:  ptr.To[string]("\n\nCo-authored-by: test-name <email>\n"),
+					Verified: ptr.To(true),
+					Payload:  ptr.To("\n\nCo-authored-by: test-name <email>\n"),
 				},
 			},
 		},
 	}
 	testCommits = []*go_github.RepositoryCommit{
 		{
-			SHA: ptr.To[string]("test-sha1"),
+			SHA: ptr.To("test-sha1"),
 			Author: &go_github.User{
-				Login: ptr.To[string]("test-login"),
+				Login: ptr.To("test-login"),
 			},
 		},
 		{
-			SHA: ptr.To[string]("test-sha2"),
+			SHA: ptr.To("test-sha2"),
 			Author: &go_github.User{
-				Name: ptr.To[string]("test-name"),
+				Name: ptr.To("test-name"),
 			},
 		},
 		{
-			SHA: ptr.To[string]("test-sha3"),
+			SHA: ptr.To("test-sha3"),
 			Commit: &go_github.Commit{
 				Author: &go_github.CommitAuthor{
-					Login: ptr.To[string]("test-login"),
+					Login: ptr.To("test-login"),
 				},
 			},
 		},
 		{
-			SHA: ptr.To[string]("test-sha4"),
+			SHA: ptr.To("test-sha4"),
 			Commit: &go_github.Commit{
 				Author: &go_github.CommitAuthor{
-					Name: ptr.To[string]("test-name"),
+					Name: ptr.To("test-name"),
 				},
 			},
 		},

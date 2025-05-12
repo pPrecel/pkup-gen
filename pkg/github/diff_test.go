@@ -33,7 +33,7 @@ func Test_gh_client_GetFileDiffForPRs(t *testing.T) {
 		}
 
 		diff, err := gh.GetCommitContentDiff(&github.RepositoryCommit{
-			SHA: ptr.To[string]("test-sha-1"),
+			SHA: ptr.To("test-sha-1"),
 		}, "pPrecel", "pkup-gen")
 		require.NoError(t, err)
 		require.Equal(t, testDiff, diff)

@@ -22,15 +22,15 @@ func TestGenUserArtifactsToDir(t *testing.T) {
 		testCommits := &github.CommitList{
 			Commits: []*go_github.RepositoryCommit{
 				{
-					SHA: ptr.To[string]("sha1"),
+					SHA: ptr.To("sha1"),
 					Commit: &go_github.Commit{
-						Message: ptr.To[string]("test PR 1 (#123)"),
+						Message: ptr.To("test PR 1 (#123)"),
 					},
 				},
 				{
-					SHA: ptr.To[string]("sha2"),
+					SHA: ptr.To("sha2"),
 					Commit: &go_github.Commit{
-						Message: ptr.To[string]("test PR 2 (#123)"),
+						Message: ptr.To("test PR 2 (#123)"),
 					},
 				},
 			},

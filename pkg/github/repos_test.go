@@ -59,7 +59,7 @@ func fixTestRepos(names ...string) []*go_github.Repository {
 	repos := []*go_github.Repository{}
 	for _, name := range names {
 		repos = append(repos, &go_github.Repository{
-			Name: ptr.To[string](name),
+			Name: ptr.To(name),
 		})
 	}
 
