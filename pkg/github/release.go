@@ -7,11 +7,11 @@ import (
 )
 
 func (gh *gh_client) GetLatestReleaseOrZero(org, repo string) (string, error) {
-	var release *github.RepositoryRelease
-	var err error
-	err = gh.callWithRateLimitRetry(func() error {
-		release, _, err = gh.client.Repositories.GetLatestRelease(gh.ctx, org, repo)
-		return err
+	release, _, err := retryOnRateLimit(gh.log, func() (*github.RepositoryRelease, *github.Response, error) {
+		return gh.client.Repositories.GetLatestRelease(gh.ctx, org, repo)
 	})
+	if err != nil {
+		return "", err
+	}
 	return fmt.Sprintf("v%s", release.GetTagName()), err
 }

@@ -56,25 +56,28 @@ func NewClient(ctx context.Context, logger *pterm.Logger, opts ClientOpts) (Clie
 	}, nil
 }
 
-func (gh *gh_client) callWithRateLimitRetry(fn func() error) error {
+func retryOnRateLimit[T any](log *pterm.Logger, fn func() (T, *github.Response, error)) (T, *github.Response, error) {
+	var value T
+	var resp *github.Response
+	var err error
+
 	for i := 0; i < 5; i++ {
-		err := fn()
-		if isRateLimitErr(err) {
+		log.Trace("Ralling GH API", log.Args("iteration", i))
+		value, resp, err = fn()
+		if isRateLimitErr(err) && i < 5 {
 			// rate limit reached
 			// wait for the reset time
 			// https://docs.github.com/en/rest/using-the-rest-api/rate-limits-for-the-rest-api?apiVersion=2022-11-28
 			d := getRateLimitResetDuration(err)
-			gh.log.Warn("Rate limit exceeded, waiting", gh.log.Args("duration", d, "error", err.Error()))
+			log.Warn("Rate limit exceeded, waiting", log.Args("duration", d, "error", err.Error()))
 			time.Sleep(d)
 			continue
 		}
 
-		if err != nil {
-			return err
-		}
+		break
 	}
 
-	return nil
+	return value, resp, err
 }
 
 func isRateLimitErr(err error) bool {

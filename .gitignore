@@ -11,3 +11,6 @@ reports/
 templates/
 # Added by goreleaser init:
 dist/
+
+.pkupcompose.yaml
+templates/

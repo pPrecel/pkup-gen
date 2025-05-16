@@ -92,11 +92,8 @@ type listForPageOpts struct {
 func (gh *gh_client) listCommitsPageFunc(dest *CommitList, opts listForPageOpts) pageListFunc {
 	return func(page int) (bool, error) {
 		perPage := 100
-		var commits []*go_github.RepositoryCommit
-		var resp *go_github.Response
-		var err error
-		err = gh.callWithRateLimitRetry(func() error {
-			commits, resp, err = gh.client.Repositories.ListCommits(gh.ctx, opts.org, opts.repo, &go_github.CommitsListOptions{
+		commits, resp, err := retryOnRateLimit(gh.log, func() ([]*go_github.RepositoryCommit, *go_github.Response, error) {
+			return gh.client.Repositories.ListCommits(gh.ctx, opts.org, opts.repo, &go_github.CommitsListOptions{
 				SHA:   opts.branch,
 				Since: opts.since,
 				Until: opts.until,
@@ -105,7 +102,6 @@ func (gh *gh_client) listCommitsPageFunc(dest *CommitList, opts listForPageOpts)
 					PerPage: perPage,
 				},
 			})
-			return err
 		})
 		// return error only when statusCode is not 409 (repo is empty)
 		if err != nil && resp.StatusCode != 409 {

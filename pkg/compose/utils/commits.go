@@ -59,9 +59,8 @@ func (ll *lazyRepoCommitsLister) List(config *config.Config, since, until time.T
 	}
 
 	wg := sync.WaitGroup{}
-	allRepoCommits := make([]RepoCommits, len(repos))
-	for i, r := range repos {
-		iter := i
+	allRepoCommits := []RepoCommits{}
+	for _, r := range repos {
 		repo := r
 
 		wg.Add(1)
@@ -87,12 +86,12 @@ func (ll *lazyRepoCommitsLister) List(config *config.Config, since, until time.T
 			}
 
 			ll.logger.Debug("found commits", ll.logger.Args("org", orgName, "repo", repoName, "count", len(commitList.Commits)))
-			allRepoCommits[iter] = RepoCommits{
+			allRepoCommits = append(allRepoCommits, RepoCommits{
 				Org:           orgName,
 				Repo:          repoName,
 				EnterpriseUrl: repo.EnterpriseUrl,
 				Commits:       commitList,
-			}
+			})
 		}()
 	}
 

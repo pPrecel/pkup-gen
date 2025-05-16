@@ -7,12 +7,12 @@ import (
 )
 
 type repoList struct {
-	repos []*go_github.Repository
+	resp []*go_github.Repository
 }
 
 func (gh *gh_client) ListRepos(org string) ([]string, error) {
 	repoList := &repoList{
-		repos: []*go_github.Repository{},
+		resp: []*go_github.Repository{},
 	}
 
 	err := listForPages(gh.listReposPageFunc(repoList, org))
@@ -21,7 +21,7 @@ func (gh *gh_client) ListRepos(org string) ([]string, error) {
 	}
 
 	repos := []string{}
-	for _, repo := range repoList.repos {
+	for _, repo := range repoList.resp {
 		repos = append(repos, repo.GetName())
 	}
 
@@ -31,22 +31,19 @@ func (gh *gh_client) ListRepos(org string) ([]string, error) {
 func (gh *gh_client) listReposPageFunc(dest *repoList, org string) pageListFunc {
 	return func(page int) (bool, error) {
 		perPage := 100
-		var repos []*go_github.Repository
-		var err error
-		err = gh.callWithRateLimitRetry(func() error {
-			repos, _, err = gh.client.Repositories.ListByOrg(gh.ctx, org, &go_github.RepositoryListByOrgOptions{
+		resp, _, err := retryOnRateLimit(gh.log, func() ([]*go_github.Repository, *go_github.Response, error) {
+			return gh.client.Repositories.ListByOrg(gh.ctx, org, &go_github.RepositoryListByOrgOptions{
 				ListOptions: go_github.ListOptions{
 					Page:    page,
 					PerPage: perPage,
 				},
 			})
-			return err
 		})
 		if err != nil {
 			return false, err
 		}
 
-		dest.repos = append(dest.repos, repos...)
-		return len(repos) == perPage, nil
+		dest.resp = append(dest.resp, resp...)
+		return len(resp) == perPage, nil
 	}
 }

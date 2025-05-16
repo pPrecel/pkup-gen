@@ -3,11 +3,8 @@ package github
 import "github.com/google/go-github/v53/github"
 
 func (gh *gh_client) GetUserSignatures(username string) ([]string, error) {
-	var user *github.User
-	var err error
-	err = gh.callWithRateLimitRetry(func() error {
-		user, _, err = gh.client.Users.Get(gh.ctx, username)
-		return err
+	user, _, err := retryOnRateLimit(gh.log, func() (*github.User, *github.Response, error) {
+		return gh.client.Users.Get(gh.ctx, username)
 	})
 	if err != nil {
 		return nil, err
