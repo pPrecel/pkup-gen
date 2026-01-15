@@ -19,8 +19,8 @@ func NewZipper(logger *pterm.Logger) *zipper {
 	}
 }
 
-func (z *zipper) Do(zipFilename, zipSuffix string) (string, error) {
-	fullZipPath := fmt.Sprintf("%s%s.%s", zipFilename, zipSuffix, "zip")
+func (z *zipper) Do(zipFilename, zipPrefix string) (string, error) {
+	fullZipPath := fmt.Sprintf("%s%s.%s", zipPrefix, zipFilename, "zip")
 
 	z.logger.Debug("creating zip file", z.logger.Args(
 		"path", fullZipPath,
@@ -34,7 +34,7 @@ func (z *zipper) Do(zipFilename, zipSuffix string) (string, error) {
 	w := zip.NewWriter(outFile)
 	defer w.Close()
 
-	baseInZip := fmt.Sprintf("%s%s", filepath.Base(zipFilename), zipSuffix)
+	baseInZip := fmt.Sprintf("%s%s", zipPrefix, filepath.Base(zipFilename))
 	if err := z.addFilesToZip(w, zipFilename, baseInZip); err != nil {
 		return "", err
 	}

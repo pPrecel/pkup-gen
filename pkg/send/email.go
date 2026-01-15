@@ -22,7 +22,7 @@ func New(logger *pterm.Logger) Sender {
 	}
 }
 
-func (s *sender) ForConfig(config *config.Config, zipSuffix string) error {
+func (s *sender) ForConfig(config *config.Config, zipPrefix string) error {
 	body := ""
 	if config.Send.HTMLBodyPath != "" {
 		s.logger.Debug("reading body", s.logger.Args("path", config.Send.HTMLBodyPath))
@@ -56,8 +56,8 @@ func (s *sender) ForConfig(config *config.Config, zipSuffix string) error {
 
 		messages := make([]*message, j-i)
 		for iter, report := range config.Reports[i:j] {
-			s.logger.Debug("zipping report", s.logger.Args("dir", report.OutputDir, "suffix", zipSuffix))
-			reportFile, err := zipper.Do(report.OutputDir, zipSuffix)
+			s.logger.Debug("zipping report", s.logger.Args("dir", report.OutputDir, "prefix", zipPrefix))
+			reportFile, err := zipper.Do(report.OutputDir, zipPrefix)
 			if err != nil {
 				return err
 			}

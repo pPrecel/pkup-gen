@@ -93,6 +93,6 @@ func sendCommandAction(opts *sendActionOpts) error {
 		return fmt.Errorf("failed to read config from path '%s': %s", opts.config, err.Error())
 	}
 
-	zipSuffix := opts.reportTimestamp.Value().Format("_01_2006")
-	return send.New(opts.Log).ForConfig(config, zipSuffix)
+	zipPrefix := opts.reportTimestamp.Value().Format("200601_")
+	return send.New(opts.Log).ForConfig(config, zipPrefix)
 }
