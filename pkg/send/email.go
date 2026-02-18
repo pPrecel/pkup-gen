@@ -73,7 +73,7 @@ func (s *sender) ForConfig(config *config.Config, zipPrefix string) error {
 		}
 
 		s.logger.Info("sending built messages", s.logger.Args("len", len(messages)))
-		err = dialer.SendMail(messages...)
+		err = dialer.SendMails(messages)
 		if err != nil {
 			return err
 		}

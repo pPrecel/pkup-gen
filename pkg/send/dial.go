@@ -1,6 +1,9 @@
 package send
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/pterm/pterm"
 	"gopkg.in/mail.v2"
 )
@@ -44,7 +47,7 @@ type message struct {
 	attachmentPath string
 }
 
-func (d *dialer) SendMail(messages ...*message) error {
+func (d *dialer) SendMails(messages []*message) error {
 	mailMessages := make([]*mail.Message, len(messages))
 	for i, m := range messages {
 		mailMessage := mail.NewMessage()
@@ -57,5 +60,29 @@ func (d *dialer) SendMail(messages ...*message) error {
 		mailMessages[i] = mailMessage
 	}
 
-	return mail.Send(d.sender, mailMessages...)
+	for _, message := range mailMessages {
+		err := d.sendMailWithRetry(message)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+func (d *dialer) sendMailWithRetry(messages *mail.Message) error {
+	var err error
+	iterations := 5
+	for i := 0; i < iterations; i++ {
+		err = mail.Send(d.sender, messages)
+		if err == nil {
+			return nil
+		}
+
+		delay := time.Minute
+		d.logger.Warn("failed to send mail, retrying", d.logger.Args("iteration", fmt.Sprintf("%d/%d", i+1, iterations), "delay", delay.String(), "error", err.Error()))
+		time.Sleep(delay)
+	}
+
+	return err
 }
