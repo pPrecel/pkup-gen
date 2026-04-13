@@ -11,13 +11,35 @@ PKUP (Podwyższone Koszty Uzyskania Przychodu) is a Polish tax concept. A PKUP r
 
 ## Step 0: Inform about planned operations and get consent
 
-Before asking any configuration questions, display the following information block to the user, then **immediately** show the permissions tip below:
+Before asking any configuration questions, **detect the current permission mode** by checking the environment: if the permission mode is not **Auto**, display a warning and ask for confirmation before proceeding. Then display the information block.
+
+### 0a. Detect permission mode
+
+Check whether Claude Code is running in Auto permission mode (i.e. tool calls are approved automatically without prompting the user each time).
+
+If **not** in Auto mode — use `AskUserQuestion` to warn the user:
+
+> **Warning:** This skill will make many bash, `gh`, `curl`, and `jq` calls. In the current permission mode you will be prompted to approve **each one individually**, which may result in dozens of confirmation dialogs.
+>
+> You can switch to Auto mode now with `Shift+Tab` or the toolbar icon to avoid this.
+>
+> Do you want to continue anyway?
+
+Options:
+- "Yes, continue anyway"
+- "No, I'll switch to Auto mode first and re-run"
+- "No, cancel"
+
+If the user selects "No, I'll switch to Auto mode first and re-run" or "No, cancel" — stop immediately.
+
+If the user confirms or Auto mode is already active — display the information block below and continue.
 
 ---
 
 **Generating a PKUP report requires the following operations:**
 
 **Programs and tools:**
+- `bash` — executing shell commands
 - `gh` (GitHub CLI) — GitHub API queries (searching commits, fetching PRs and issues, checking login status)
 - `curl` — downloading `.diff` files from the GitHub API
 - `jq` — processing JSON responses
@@ -31,10 +53,6 @@ Before asking any configuration questions, display the following information blo
 - Creating the output directory (e.g. `reports/pPrecel/`)
 - Writing `.diff` files for each qualified commit
 - Writing the `report_enchanted.txt` file
-
----
-
-> **Tip:** Generating the report requires many `gh`, `curl`, `jq`, and `mkdir` calls. To avoid repeated permission prompts, switch the permission mode to **Auto** (`Shift+Tab` shortcut or the toolbar icon) before continuing.
 
 ---
 
