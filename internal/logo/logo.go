@@ -27,6 +27,20 @@ var (
 	}
 )
 
+func ClaudeTip() string {
+	return fmt.Sprint(
+		"\n",
+		pterm.Bold.Sprint(pterm.LightCyan("💡 Using Claude Code?")), "\n",
+		"   Install the ", pterm.Bold.Sprint("/pkup-enchant"), " skill to group commits, filter creative work\n",
+		"   and generate Polish descriptions automatically:\n",
+		"\n",
+		pterm.Gray("   claude plugin marketplace add pPrecel/pkup-gen"), "\n",
+		pterm.Gray("   claude plugin install pkup-enchant@pkup-gen"), "\n",
+		"\n",
+		"   Then run ", pterm.Bold.Sprint("/pkup-enchant"), " in Claude Code to enrich your report.",
+	)
+}
+
 func Build(version string) string {
 	return fmt.Sprint(
 		pkupLayers[0], genLayers[0], "\n",

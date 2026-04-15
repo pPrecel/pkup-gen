@@ -248,6 +248,8 @@ func genCommandAction(ctx *cli.Context, opts *genActionOpts) error {
 
 	opts.Log.Info("all files saved to dir", opts.Log.Args("dir", opts.outputDir))
 
+	fmt.Println(logo.ClaudeTip())
+
 	return nil
 }
 

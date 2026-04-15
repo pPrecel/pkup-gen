@@ -113,9 +113,15 @@ func composeCommandAction(ctx *cli.Context, opts *composeActionOpts) error {
 		return fmt.Errorf("failed to read config from path '%s': %s", opts.config, err.Error())
 	}
 
-	return compose.New(ctx.Context, opts.Log).ForConfig(cfg, compose.Options{
+	if err := compose.New(ctx.Context, opts.Log).ForConfig(cfg, compose.Options{
 		Since: *opts.since.Value(),
 		Until: *opts.until.Value(),
 		Ci:    opts.ci,
-	})
+	}); err != nil {
+		return err
+	}
+
+	fmt.Println(logo.ClaudeTip())
+
+	return nil
 }
