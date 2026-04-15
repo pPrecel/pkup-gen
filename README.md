@@ -43,6 +43,18 @@ Visit the [releases page](https://github.com/pPrecel/pkup-gen/releases) to downl
     brew install pkup-gen
     ```
 
+### Claude Code Skills
+
+If you use [Claude Code](https://claude.ai/code), you can install the skills directly instead of the binary:
+
+```bash
+claude plugin marketplace add pPrecel/pkup-gen
+claude plugin install pkup-gen@pkup-gen
+claude plugin install pkup-enchant@pkup-gen
+```
+
+Then type `/pkup-gen` in any Claude Code conversation to get started. See the [Claude Code Skills](#claude-code-skills) section for details.
+
 ## Usage
 
 Example usage:
