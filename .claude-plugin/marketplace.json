@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "pkup-tools",
-      "source": "./.claude-plugin/pkup-tools",
+      "source": "./",
       "description": "Tools for generating and enriching PKUP reports from GitHub activity",
       "version": "1.0.0",
       "homepage": "https://github.com/pPrecel/pkup-gen",
