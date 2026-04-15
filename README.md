@@ -98,14 +98,6 @@ For more read [this](./examples/compose-and-send/README.md) article.
 
 `pkup-gen` ships two [Claude Code](https://claude.ai/code) skills that let you generate and enrich PKUP reports directly from an AI conversation — no CLI flags, no YAML config.
 
-### Installation
-
-```bash
-claude plugin marketplace add pPrecel/pkup-gen
-claude plugin install pkup-gen@pkup-gen
-claude plugin install pkup-enchant@pkup-gen
-```
-
 ### Skills
 
 **`/pkup-gen`** — generates the report
