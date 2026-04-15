@@ -22,6 +22,8 @@ Simple and easy-to-use tool to generate PKUP (`Podwyższone Koszty Uzyskania Prz
 
 The `pkup-gen` collects all users' commits pushed between the 18th (23:59:59) of the actual month and the 19th (00:00:00) of the past one. To qualify a commit, the user should be an author or co-author of it.
 
+> **Using [Claude Code](https://claude.ai/code)?** Install the `/pkup-gen` and `/pkup-enchant` skills to generate and enrich your PKUP report directly from an AI conversation — no CLI flags needed. → [Jump to Claude Code Skills](#claude-code-skills)
+
 ## Installation
 
 Visit the [releases page](https://github.com/pPrecel/pkup-gen/releases) to download one of the pre-built binaries for your platform.
