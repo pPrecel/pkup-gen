@@ -79,3 +79,50 @@ The `pkup-gen` needs credentials to connect with the GitHub API. There are two p
 The `pkup-gen` application supports more complex use cases to generate a report based on several different GitHub instances ( for example opensource and enterprise ) and for many usernames. The app allows one to compose many reports for the same orgs/repos for many people and send emails to them with zipped reports.
 
 For more read [this](./examples/compose-and-send/README.md) article.
+
+## Claude Code Skills
+
+`pkup-gen` ships two [Claude Code](https://claude.ai/code) skills that let you generate and enrich PKUP reports directly from an AI conversation — no CLI flags, no YAML config.
+
+### Installation
+
+```bash
+claude plugin marketplace add pPrecel/pkup-gen
+claude plugin install pkup-gen@pkup-gen
+claude plugin install pkup-enchant@pkup-gen
+```
+
+### Skills
+
+**`/pkup-gen`** — generates the report
+
+1. Asks about provider/org configuration and confirms the PKUP period
+2. Verifies `gh` CLI login for each provider
+3. Queries GitHub for all your commits in the period (handles multiple author signatures)
+4. Downloads a `.diff` file per commit into the output directory
+5. Suggests running `/pkup-enchant` as the next step
+
+**`/pkup-enchant`** — enriches the report
+
+1. Detects the output directory and fetches PR/issue context from GitHub
+2. Groups commits into coherent tasks; proposes which groups to include or skip
+3. Lets you review and adjust the classification before proceeding
+4. Deletes `.diff` files for excluded groups
+5. Writes a one-sentence Polish description per included group (_"Zaprojektowałem oraz zaimplementowałem..."_)
+6. Overwrites the report file (`.txt` or `.docx`) with the enriched result
+
+### Combining skills
+
+The skills are designed to work together but can also be used independently. A common hybrid scenario: generate the report with the `pkup-gen` CLI binary (or `pkup compose`), then run `/pkup-enchant` in Claude Code to handle the enrichment step:
+
+```bash
+# Step 1 — generate with the CLI
+pkup gen --username pPrecel --org kyma-project --output reports/FILIP_STROZIK
+
+# Step 2 — enrich with the skill (in Claude Code)
+/pkup-enchant
+```
+
+The skill picks up any directory containing `.diff` files produced by either the CLI or the `/pkup-gen` skill.
+
+For a full walkthrough see [examples/claude-skills](./examples/claude-skills/README.md).

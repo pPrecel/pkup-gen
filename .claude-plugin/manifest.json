@@ -11,6 +11,12 @@
       "path": "skills/pkup-gen/SKILL.md",
       "trigger": "/pkup-gen",
       "description": "Generate a PKUP report for given GitHub users"
+    },
+    {
+      "name": "pkup-enchant",
+      "path": "skills/pkup-enchant/SKILL.md",
+      "trigger": "/pkup-enchant",
+      "description": "Enrich an existing PKUP report — group commits into tasks, filter non-creative work, and write Polish descriptions"
     }
   ],
   "requirements": {

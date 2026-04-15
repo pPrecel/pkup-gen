@@ -1,0 +1,28 @@
+{
+  "name": "pkup-gen",
+  "owner": {
+    "name": "pPrecel"
+  },
+  "metadata": {
+    "description": "PKUP report generation and enrichment tools for Polish tax deductions",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "pkup-gen",
+      "source": "./skills/pkup-gen",
+      "description": "Generate a PKUP report for given GitHub users",
+      "version": "1.0.0",
+      "homepage": "https://github.com/pPrecel/pkup-gen",
+      "license": "MIT"
+    },
+    {
+      "name": "pkup-enchant",
+      "source": "./skills/pkup-enchant",
+      "description": "Enrich an existing PKUP report — group commits into tasks, filter non-creative work, and write Polish descriptions",
+      "version": "1.0.0",
+      "homepage": "https://github.com/pPrecel/pkup-gen",
+      "license": "MIT"
+    }
+  ]
+}
