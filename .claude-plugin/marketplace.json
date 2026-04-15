@@ -9,17 +9,9 @@
   },
   "plugins": [
     {
-      "name": "pkup-gen",
-      "source": "./.claude-plugins/pkup-gen",
-      "description": "Generate a PKUP report for given GitHub users",
-      "version": "1.0.0",
-      "homepage": "https://github.com/pPrecel/pkup-gen",
-      "license": "MIT"
-    },
-    {
-      "name": "pkup-enchant",
-      "source": "./.claude-plugins/pkup-enchant",
-      "description": "Enrich an existing PKUP report — group commits into tasks, filter non-creative work, and write Polish descriptions",
+      "name": "pkup-tools",
+      "source": "./.claude-plugin/pkup-tools",
+      "description": "Tools for generating and enriching PKUP reports from GitHub activity",
       "version": "1.0.0",
       "homepage": "https://github.com/pPrecel/pkup-gen",
       "license": "MIT"

@@ -1,20 +1,20 @@
 {
-  "name": "pkup-gen",
+  "name": "pkup-tools",
   "version": "1.0.0",
-  "description": "Claude Code skill for generating PKUP (Podwyższone Koszty Uzyskania Przychodu) reports from GitHub commits",
+  "description": "Tools for generating and enriching PKUP reports from GitHub activity",
   "author": "pPrecel",
   "license": "MIT",
   "repository": "https://github.com/pPrecel/pkup-gen",
   "skills": [
     {
       "name": "pkup-gen",
-      "path": "skills/pkup-gen/SKILL.md",
+      "path": "skills/pkup-gen.md",
       "trigger": "/pkup-gen",
       "description": "Generate a PKUP report for given GitHub users"
     },
     {
       "name": "pkup-enchant",
-      "path": "skills/pkup-enchant/SKILL.md",
+      "path": "skills/pkup-enchant.md",
       "trigger": "/pkup-enchant",
       "description": "Enrich an existing PKUP report — group commits into tasks, filter non-creative work, and write Polish descriptions"
     }

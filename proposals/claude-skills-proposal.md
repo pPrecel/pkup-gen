@@ -55,8 +55,7 @@ Skills are distributed as a Claude Code plugin marketplace at `pPrecel/pkup-gen`
 
 ```bash
 claude plugin marketplace add pPrecel/pkup-gen
-claude plugin install pkup-gen@pkup-gen
-claude plugin install pkup-enchant@pkup-gen
+claude plugin install pkup-tools@pkup-gen
 ```
 
 Plugin metadata lives in `.claude-plugin/marketplace.json` and `.claude-plugin/manifest.json`.

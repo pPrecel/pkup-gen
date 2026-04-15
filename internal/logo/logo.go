@@ -35,7 +35,7 @@ func ClaudeTip() string {
 		"   and generate Polish descriptions automatically:\n",
 		"\n",
 		pterm.Gray("   claude plugin marketplace add pPrecel/pkup-gen"), "\n",
-		pterm.Gray("   claude plugin install pkup-enchant@pkup-gen"), "\n",
+		pterm.Gray("   claude plugin install pkup-tools@pkup-gen"), "\n",
 		"\n",
 		"   Then run ", pterm.Bold.Sprint("/pkup-enchant"), " in Claude Code to enrich your report.",
 	)

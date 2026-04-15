@@ -49,8 +49,7 @@ If you use [Claude Code](https://claude.ai/code), you can install the skills dir
 
 ```bash
 claude plugin marketplace add pPrecel/pkup-gen
-claude plugin install pkup-gen@pkup-gen
-claude plugin install pkup-enchant@pkup-gen
+claude plugin install pkup-tools@pkup-gen
 ```
 
 Then type `/pkup-gen` in any Claude Code conversation to get started. See the [Claude Code Skills](#claude-code-skills) section for details.

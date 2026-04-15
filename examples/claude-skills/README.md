@@ -8,8 +8,7 @@ Install the skills from the `pkup-gen` plugin marketplace:
 
 ```bash
 claude plugin marketplace add pPrecel/pkup-gen
-claude plugin install pkup-gen@pkup-gen
-claude plugin install pkup-enchant@pkup-gen
+claude plugin install pkup-tools@pkup-gen
 ```
 
 You also need the `gh` CLI installed and authenticated:
