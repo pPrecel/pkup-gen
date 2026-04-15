@@ -19,13 +19,18 @@ Starting from an already-generated output directory (containing `.diff` files an
 
 ## Step 0: Determine the report directory
 
-List subdirectories of `reports/` (if it exists) and ask the user which directory to process:
+Use the following decision tree:
 
-```bash
-ls reports/
-```
+1. Check whether a `reports/` subdirectory exists in the current working directory and contains at least one subdirectory with `.diff` files:
+   ```bash
+   ls reports/
+   ```
+2. **If `reports/` exists and has subdirectories with `.diff` files** — ask (AskUserQuestion) which subdirectory to use, listing each as an option plus "Custom path" as a fallback.
+3. **If `reports/` does not exist or has no `.diff` files** — check whether the current working directory itself contains `.diff` files:
+   - If yes — set CWD as **outputDir** directly, without asking.
+   - If no — ask the user for the path (AskUserQuestion with a free-text "Custom path" option).
 
-Ask (AskUserQuestion) with the found directories as options plus "Custom path" as a fallback. The selected directory must contain at least one `.diff` file and one report file (`*.txt` or `*.docx`).
+The selected directory must contain at least one `.diff` file and one report file (`*.txt` or `*.docx`). If a report file is missing, continue — pkup-enchant will create a minimal `report.txt` before writing the final result.
 
 Remember the path as **outputDir**.
 
@@ -78,7 +83,16 @@ gh api --method=GET search/issues \
   --jq '.items[0] | {number: .number, title: .title, body: (.body // "" | .[0:600])}'
 ```
 
-For found PRs, check for linked issues in the body (patterns: `issues/NUMBER`, `Resolves #N`, `Fixes #N`).
+If `.items` is empty (no PR found for this SHA8) — fetch the commit message directly:
+
+```bash
+gh api --hostname PROVIDER repos/ORG/REPO/commits/SHA \
+  --jq '{message: (.commit.message | split("\n")[0])}'
+```
+
+Use the commit message as `pr_title` with `pr_number: null`. Group this diff with other commits from the same repository by theme or treat it as its own single-commit group.
+
+For found PRs, check for linked issues in the body (patterns: `issues/NUMBER`, `Resolves #N`, `Fixes #N`, `Closes #N`).
 
 For found issues, fetch title and description:
 
@@ -160,7 +174,7 @@ Rules:
 - Emphasise the **creative and inventive nature** of the work
 - Describe the **business or technical value** — what it enables, what problem it solves
 - Use language that indicates **authorship**: "zaprojektowałem" (I designed), "stworzyłem" (I created), "opracowałem" (I developed)
-- Single sentence, written in **Polish**
+- One sentence written in **Polish** — it may contain multiple clauses; prefer rich, precise descriptions over brevity
 
 Good description examples:
 - "Zaprojektowałem oraz zaimplementowałem kompleksową platformę do pomiaru wydajności funkcji serverless, umożliwiającą deweloperom świadome podejmowanie decyzji architektonicznych poprzez dostarczenie danych o opóźnieniach platformy dla różnych środowisk uruchomieniowych i profili zasobów."
@@ -169,7 +183,7 @@ Good description examples:
 
 ## Step 7: Apply the result to the report file
 
-The `result` block has no repo separators — it is a flat sequence of description+commits groups, separated by **3 blank lines** between groups:
+The `result` block has no repo separators — it is a flat sequence of description+commits groups, separated by **2 blank lines** (3 newlines) between groups for `.txt`, and **1 empty paragraph** (`make_empty_para()`) between groups for `.docx`:
 
 ```
 Zaprojektowałem oraz zaimplementowałem ...
@@ -212,9 +226,10 @@ The `.docx` is a ZIP archive containing `word/document.xml`. Edit it directly wi
 
 **Paragraph types to generate:**
 
-1. **Description paragraph** (plain text, no indent) — matches the style of plain body text in the document (no `<w:pStyle>`, no `<w:numPr>`):
+1. **Description paragraph** (plain text, no indent):
 ```xml
 <w:p w14:paraId="RAND8HEX" w14:textId="77777777" w:rsidR="00D64311" w:rsidRDefault="00D64311">
+  <w:pPr><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr>
   <w:r>
     <w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr>
     <w:t xml:space="preserve">Zaprojektowałem oraz zaimplementowałem ...</w:t>
@@ -222,21 +237,33 @@ The `.docx` is a ZIP archive containing `word/document.xml`. Edit it directly wi
 </w:p>
 ```
 
-2. **Commit entry paragraph** (bulleted list, indented) — copy the `<w:pPr>` with `<w:pStyle w:val="ListParagraph"/>` and `<w:numPr>` from the original commit paragraphs found in the document.
+2. **Commit entry paragraph** (plain text with `  - ` prefix, no list style):
+```xml
+<w:p w14:paraId="RAND8HEX" w14:textId="77777777" w:rsidR="00D64311" w:rsidRDefault="00D64311">
+  <w:pPr><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr>
+  <w:r>
+    <w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr>
+    <w:t xml:space="preserve">  - PR Title (#N) (file.diff)</w:t>
+  </w:r>
+</w:p>
+```
 
-3. **Empty separator paragraph** — same structure as the description paragraph but with no `<w:r>` content. Insert one between groups (not before the first group).
+3. **Empty separator paragraph** — same as description paragraph but with no `<w:r>` content. Insert **one** between groups (not before the first group).
 
 **Python script template:**
 
 ```bash
 python3 - <<'EOF'
-import zipfile, os, random
+import zipfile, os, random, html
 
 src = "outputDir/report.docx"
 tmp = src + ".tmp"
 
 def rand_id():
     return f"{random.randint(0x10000000, 0xEFFFFFFF):08X}"
+
+def esc(text):
+    return html.escape(text, quote=False)
 
 def make_empty_para():
     return (
@@ -247,18 +274,17 @@ def make_empty_para():
 def make_desc_para(text):
     return (
         f'<w:p w14:paraId="{rand_id()}" w14:textId="77777777" w:rsidR="00D64311" w:rsidRDefault="00D64311">'
+        f'<w:pPr><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr>'
         f'<w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr>'
-        f'<w:t xml:space="preserve">{text}</w:t></w:r></w:p>'
+        f'<w:t xml:space="preserve">{esc(text)}</w:t></w:r></w:p>'
     )
 
 def make_commit_para(text):
-    # Copy <w:pPr> with pStyle/numPr from original commit paragraphs in the document
     return (
-        f'<w:p w14:paraId="{rand_id()}" w14:textId="77777777" w:rsidR="00D64311" w:rsidRDefault="00D64311" w:rsidP="00DF69A1">'
-        f'<w:pPr><w:pStyle w:val="ListParagraph"/><w:numPr><w:ilvl w:val="1"/><w:numId w:val="8"/></w:numPr>'
-        f'<w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr>'
+        f'<w:p w14:paraId="{rand_id()}" w14:textId="77777777" w:rsidR="00D64311" w:rsidRDefault="00D64311">'
+        f'<w:pPr><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr></w:pPr>'
         f'<w:r><w:rPr><w:rFonts w:ascii="Arial" w:hAnsi="Arial"/><w:sz w:val="20"/><w:szCs w:val="20"/></w:rPr>'
-        f'<w:t xml:space="preserve">{text}</w:t></w:r></w:p>'
+        f'<w:t xml:space="preserve">  - {esc(text)}</w:t></w:r></w:p>'
     )
 
 groups = [
@@ -279,8 +305,8 @@ for i, g in enumerate(groups):
         new_xml += make_commit_para(c)
 
 # Find region: from <w:p> containing first commit to </w:p> of last commit
-first_text = "FIRST_COMMIT_TITLE"   # text of first commit entry in the document
-last_text  = "LAST_COMMIT_TITLE"    # text of last commit entry in the document
+first_text = "FIRST_COMMIT_TITLE"   # fragment of first commit entry text visible inside <w:t>
+last_text  = "LAST_COMMIT_TITLE"    # fragment of last commit entry text visible inside <w:t>
 
 idx_first = content.find(first_text)
 idx_last  = content.find(last_text)
@@ -302,8 +328,8 @@ EOF
 ```
 
 **Important:** Before running the script, inspect the actual `word/document.xml` to find:
-- The exact text of the first and last commit entries (use as `first_text` / `last_text`)
-- The `<w:pPr>` structure of original commit paragraphs (to copy correct `numId` and `ilvl` values into `make_commit_para`)
+- The exact text of the first and last commit entries visible inside `<w:t>` tags (use as `first_text` / `last_text`). The commit region may be a single `<w:p>` with commits separated by `<w:br/>` (pkup-gen default) or separate `<w:p>` per commit — in both cases `para_start`/`para_end` are found the same way.
+- Note: `make_commit_para` generates plain paragraphs with `  - ` prefix (no `ListParagraph` style), which works correctly for both document layouts.
 
 Also replace `pkupGenPeriodFrom`, `pkupGenPeriodTill`, and `pkupGenApprovalDate` placeholders if they still contain the template strings (i.e. were not yet filled in by pkup-gen).
 
@@ -311,7 +337,9 @@ After writing the file, print the full result block to the conversation so the u
 
 ## Step 8: Thank the user and ask about starring the repo
 
-Print the following message:
+**Skip this step** if `/pkup-gen` was already run earlier in this conversation session and the starring question was already asked.
+
+Otherwise, print the following message:
 
 ```
 Dzięki za skorzystanie z pkup-gen! 🙌
