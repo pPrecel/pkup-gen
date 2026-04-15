@@ -1,0 +1,20 @@
+{
+  "name": "pkup-gen",
+  "version": "1.0.0",
+  "description": "Generate a PKUP report directory containing all commits and their .diff files for a given period",
+  "author": "pPrecel",
+  "license": "MIT",
+  "repository": "https://github.com/pPrecel/pkup-gen",
+  "skills": [
+    {
+      "name": "pkup-gen",
+      "path": "skills/SKILL.md",
+      "trigger": "/pkup-gen",
+      "description": "Generate a PKUP report for given GitHub users"
+    }
+  ],
+  "requirements": {
+    "tools": ["gh", "curl", "jq"],
+    "permissions": ["network", "filesystem"]
+  }
+}

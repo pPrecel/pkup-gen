@@ -1,0 +1,20 @@
+{
+  "name": "pkup-enchant",
+  "version": "1.0.0",
+  "description": "Enrich an existing PKUP report — group commits into tasks, filter non-creative work, and write Polish descriptions",
+  "author": "pPrecel",
+  "license": "MIT",
+  "repository": "https://github.com/pPrecel/pkup-gen",
+  "skills": [
+    {
+      "name": "pkup-enchant",
+      "path": "skills/SKILL.md",
+      "trigger": "/pkup-enchant",
+      "description": "Enrich an existing PKUP report — group commits into tasks, filter non-creative work, and write Polish descriptions"
+    }
+  ],
+  "requirements": {
+    "tools": ["gh", "curl", "jq"],
+    "permissions": ["network", "filesystem"]
+  }
+}

@@ -10,7 +10,7 @@
   "plugins": [
     {
       "name": "pkup-gen",
-      "source": "./skills/pkup-gen",
+      "source": "./.claude-plugins/pkup-gen",
       "description": "Generate a PKUP report for given GitHub users",
       "version": "1.0.0",
       "homepage": "https://github.com/pPrecel/pkup-gen",
@@ -18,7 +18,7 @@
     },
     {
       "name": "pkup-enchant",
-      "source": "./skills/pkup-enchant",
+      "source": "./.claude-plugins/pkup-enchant",
       "description": "Enrich an existing PKUP report — group commits into tasks, filter non-creative work, and write Polish descriptions",
       "version": "1.0.0",
       "homepage": "https://github.com/pPrecel/pkup-gen",
