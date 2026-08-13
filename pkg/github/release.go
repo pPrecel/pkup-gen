@@ -7,7 +7,7 @@ import (
 )
 
 func (gh *gh_client) GetLatestReleaseOrZero(org, repo string) (string, error) {
-	release, _, err := retryOnRateLimit(gh.log, func() (*github.RepositoryRelease, *github.Response, error) {
+	release, _, err := retryOnRateLimitOrInternalError(gh.log, func() (*github.RepositoryRelease, *github.Response, error) {
 		return gh.client.Repositories.GetLatestRelease(gh.ctx, org, repo)
 	})
 	if err != nil {

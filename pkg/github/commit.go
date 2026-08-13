@@ -92,7 +92,7 @@ type listForPageOpts struct {
 func (gh *gh_client) listCommitsPageFunc(dest *CommitList, opts listForPageOpts) pageListFunc {
 	return func(page int) (bool, error) {
 		perPage := 100
-		commits, resp, err := retryOnRateLimit(gh.log, func() ([]*go_github.RepositoryCommit, *go_github.Response, error) {
+		commits, resp, err := retryOnRateLimitOrInternalError(gh.log, func() ([]*go_github.RepositoryCommit, *go_github.Response, error) {
 			return gh.client.Repositories.ListCommits(gh.ctx, opts.org, opts.repo, &go_github.CommitsListOptions{
 				SHA:   opts.branch,
 				Since: opts.since,

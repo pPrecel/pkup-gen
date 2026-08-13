@@ -56,13 +56,13 @@ func NewClient(ctx context.Context, logger *pterm.Logger, opts ClientOpts) (Clie
 	}, nil
 }
 
-func retryOnRateLimit[T any](log *pterm.Logger, fn func() (T, *github.Response, error)) (T, *github.Response, error) {
+func retryOnRateLimitOrInternalError[T any](log *pterm.Logger, fn func() (T, *github.Response, error)) (T, *github.Response, error) {
 	var value T
 	var resp *github.Response
 	var err error
 
 	for i := 0; i < 5; i++ {
-		log.Trace("Ralling GH API", log.Args("iteration", i))
+		log.Trace("Calling GH API", log.Args("iteration", i))
 		value, resp, err = fn()
 		if isRateLimitErr(err) && i < 5 {
 			// rate limit reached
@@ -72,12 +72,31 @@ func retryOnRateLimit[T any](log *pterm.Logger, fn func() (T, *github.Response, 
 			log.Warn("Rate limit exceeded, waiting", log.Args("duration", d, "error", err.Error()))
 			time.Sleep(d)
 			continue
+		} else if isInternalServerError(err) && i < 5 {
+			// internal server error, retry
+			log.Warn("Internal server error, retrying", log.Args("iteration", i, "error", err.Error()))
+			time.Sleep(time.Second * 2)
+			continue
 		}
 
 		break
 	}
 
 	return value, resp, err
+}
+
+func isInternalServerError(err error) bool {
+	if err == nil {
+		return false
+	}
+
+	switch e := err.(type) {
+	case *github.ErrorResponse:
+		// common error response when reaching the same endpoint too many times
+		return e.Response.StatusCode == 500
+	default:
+		return false
+	}
 }
 
 func isRateLimitErr(err error) bool {

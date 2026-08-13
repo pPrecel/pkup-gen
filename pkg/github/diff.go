@@ -13,7 +13,7 @@ func (gh *gh_client) GetCommitContentDiff(commit *github.RepositoryCommit, org, 
 }
 
 func (gh *gh_client) getContentDiff(sha, org, repo string) (string, error) {
-	diff, _, err := retryOnRateLimit(gh.log, func() (string, *github.Response, error) {
+	diff, _, err := retryOnRateLimitOrInternalError(gh.log, func() (string, *github.Response, error) {
 		return gh.client.Repositories.GetCommitRaw(
 			gh.ctx,
 			org,

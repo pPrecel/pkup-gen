@@ -23,7 +23,7 @@ func (gh *gh_client) ListRepoBranches(org, repo string) (*BranchList, error) {
 func (gh *gh_client) listBranchesForPage(dest *BranchList, org, repo string) pageListFunc {
 	return func(page int) (bool, error) {
 		perPage := 100
-		branches, resp, err := retryOnRateLimit(gh.log, func() ([]*go_github.Branch, *go_github.Response, error) {
+		branches, resp, err := retryOnRateLimitOrInternalError(gh.log, func() ([]*go_github.Branch, *go_github.Response, error) {
 			return gh.client.Repositories.ListBranches(gh.ctx, org, repo, &go_github.BranchListOptions{
 				ListOptions: go_github.ListOptions{
 					Page:    page,

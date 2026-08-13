@@ -31,7 +31,7 @@ func (gh *gh_client) ListRepos(org string) ([]string, error) {
 func (gh *gh_client) listReposPageFunc(dest *repoList, org string) pageListFunc {
 	return func(page int) (bool, error) {
 		perPage := 100
-		resp, _, err := retryOnRateLimit(gh.log, func() ([]*go_github.Repository, *go_github.Response, error) {
+		resp, _, err := retryOnRateLimitOrInternalError(gh.log, func() ([]*go_github.Repository, *go_github.Response, error) {
 			return gh.client.Repositories.ListByOrg(gh.ctx, org, &go_github.RepositoryListByOrgOptions{
 				ListOptions: go_github.ListOptions{
 					Page:    page,
